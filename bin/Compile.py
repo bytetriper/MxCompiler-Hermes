@@ -1,0 +1,34 @@
+import subprocess
+import os
+import sys
+assert(os.getcwd()==r'D:\VS_C\Compiler\src')
+
+if(len(sys.argv)>1):
+    os.chdir('parser')
+    ret=subprocess.run("antlr4 Mx.g4 -visitor -no-listener",shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=10)
+    if ret.stderr:
+        print("compiler g4 error")
+        exit(0)
+if 1:
+    if(len(sys.argv)>1):
+        name=['MxBaseVisitor.java','MxParser.java','MxVisitor.java','MxLexer.java']
+        for n in name:
+            with open(n, "r+") as f:
+                old = f.read()
+                f.seek(0)
+                f.write('package parser;')
+                f.write(old)
+        os.chdir('..')
+    ret=subprocess.run("del astnode\\*.class",shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=10)
+    ret=subprocess.run("del astnode\\basicnode\\*.class",shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=10)
+    print(ret.stderr.decode('utf8','replace'))
+    ret=subprocess.run("del astnode\\defnode\\*.class",shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=10)
+    ret=subprocess.run("del astnode\\stmtsnode\\*.class",shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=10)
+    ret=subprocess.run("del astnode\\exprnode\\*.class",shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=10)
+    ret=subprocess.run("del frontend\\*.class",shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=10)
+    ret=subprocess.run("del parser\\*.class",shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=10)
+    ret=subprocess.run("del utils\\*.class",shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=10)
+    #ret=subprocess.run("del out",shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=10)
+    #print(ret.stderr.decode(errors='ignore'))
+    ret=subprocess.run("javac Compiler.java",shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=10)
+    print(ret.stderr)

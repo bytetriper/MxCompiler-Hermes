@@ -1,0 +1,4 @@
+./.vscode
+./test.java
+*.class
+*.mx
