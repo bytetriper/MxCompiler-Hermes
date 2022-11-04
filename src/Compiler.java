@@ -24,7 +24,12 @@ public class Compiler {
         }else
             input=System.in;
         MxLexer lexer=new MxLexer(CharStreams.fromStream((input)));
+        lexer.removeErrorListeners();
+        lexer.addErrorListener(new MxErrorHandler());
         MxParser parser=new MxParser(new CommonTokenStream(lexer));
+        parser.removeErrorListeners();
+        parser.addErrorListener(new MxErrorHandler());
+        //parser.addErrorListener();
         ParseTree root=parser.program();
         //System.out.println(root.toStringTree(parser));
         astbuilder visitor=new astbuilder();
