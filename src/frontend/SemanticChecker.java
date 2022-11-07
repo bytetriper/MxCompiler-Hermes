@@ -227,7 +227,7 @@ public void addResidual(SuiteNode suite,Scope parent)
     }
 };
 @Override
- public void visit(IndexNode tmpnode){
+ public void visit(IndexNode tmpnode){//a[1][2]
     pass(tmpnode,tmpnode.belongs);
     tmpnode.belongs.accept(this);
     tmpnode.type=new TypeNode(tmpnode.belongs.type);
