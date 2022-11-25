@@ -1,7 +1,7 @@
 import subprocess
 import os
 import sys
-assert(os.getcwd()==r'D:\VS_C\Compiler\src')
+assert(os.getcwd()==r'/root/MxCompiler-Hermes/src')
 
 if(len(sys.argv)>1):
     os.chdir('parser')
@@ -19,16 +19,23 @@ if 1:
                 f.write('package parser;')
                 f.write(old)
         os.chdir('..')
-    ret=subprocess.run("del astnode\\*.class",shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=10)
-    ret=subprocess.run("del astnode\\basicnode\\*.class",shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=10)
-    print(ret.stderr.decode('utf8','replace'))
-    ret=subprocess.run("del astnode\\defnode\\*.class",shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=10)
-    ret=subprocess.run("del astnode\\stmtsnode\\*.class",shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=10)
-    ret=subprocess.run("del astnode\\exprnode\\*.class",shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=10)
-    ret=subprocess.run("del frontend\\*.class",shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=10)
-    ret=subprocess.run("del parser\\*.class",shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=10)
-    ret=subprocess.run("del utils\\*.class",shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=10)
-    #ret=subprocess.run("del out",shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=10)
+    try:
+        ret=subprocess.run("rm *.class",shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=10)
+    except:
+        pass
+    try:
+        ret=subprocess.run("rm */*.class",shell=True,stdout=subpsocess.PIPE,stderr=subprocess.PIPE,timeout=10)
+        print(ret.stderr.decode('utf8','replace'))
+    except:
+        pass
+    try:
+        ret=subprocess.run("rm */*/*.class",shell=True,stdout=subpsocess.PIPE,stderr=subprocess.PIPE,timeout=10)
+        print(ret.stderr.decode('utf8','replace'))
+    except:
+        pass
     #print(ret.stderr.decode(errors='ignore'))
-    ret=subprocess.run("javac Compiler.java",shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=10)
+    try:
+        ret=subprocess.run("javac Compiler.java",shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=10)
+    except:
+        pass
     print(ret.stderr)
