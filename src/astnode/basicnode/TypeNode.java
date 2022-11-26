@@ -24,6 +24,14 @@ public class TypeNode extends AstNode {
         type=t.type;
         dimension=t.dimension;
     }
+    public boolean equals(TypeNode t)
+    {
+        return (type==t.type&&dimension==t.dimension);
+    }
+    public boolean equals(String t)
+    {
+        return type==t;
+    }
     @Override
     public void accept(ASTVisitor vis)
     {

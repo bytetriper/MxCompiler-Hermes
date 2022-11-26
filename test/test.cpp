@@ -6,8 +6,11 @@ int main(){
         a=1;
     else
         a=2;
+    char *c="Asdasd";
+        char *d="AsdASDsd";
+    bool cc=true;
     a<<=1;
-    if(a>2)
+    if(cc)
     return 0;
     else 
         return 1;

@@ -2,7 +2,6 @@ import subprocess
 import os
 import sys
 assert(os.getcwd()==r'/root/MxCompiler-Hermes/src')
-
 if(len(sys.argv)>1):
     os.chdir('parser')
     ret=subprocess.run("antlr4 Mx.g4 -visitor -no-listener",shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=10)
