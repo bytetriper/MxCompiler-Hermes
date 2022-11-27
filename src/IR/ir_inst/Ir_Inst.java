@@ -1,15 +1,16 @@
 package IR.ir_inst;
 
+import java.util.ArrayList;
+
 import IR.IRVisitor;
 import utils.FUCKER;
-
-public class Ir_Inst {
-    public String To_String(){
-        new FUCKER("[Fatal Error]:Not override Ir_Inst!");
-        return "Ir_Inst ILLEGAL";
+import utils.Init_Warning;
+import IR.ir_value.Ir_Value;
+public abstract class Ir_Inst {
+    public Ir_Value User;
+    public ArrayList<Ir_Value> Operands;
+    public Ir_Inst(){
+        new Init_Warning("Ir_inst");
     }
-    public void accept(IRVisitor visitor)
-    {
-        new FUCKER("[Fatal Error]:Not override Ir_Inst Accept!");
-    }
+    abstract public String To_String();
 }

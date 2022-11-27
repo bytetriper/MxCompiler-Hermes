@@ -1,23 +1,26 @@
 package IR.ir_inst;
+import java.util.ArrayList;
+
 import IR.ir_type.*;
-import IR.IRVisitor;
+import IR.ir_value.Ir_Value;
+import utils.FUCKER;
+import utils.Init_Warning;
 public class Load extends Ir_Inst {
-    public String Name;
-    public Ir_Type Type;
     public Load(){
-        System.out.println("[Unsuggested Behaviour]:Init Load without parameters");
-        Name="undef";
+        new Init_Warning("Load_Inst");
+        User=null;
     }
-    public Load(String name,Ir_Type type){
-        Name=name;
-        Type=type;
-    }
-    @Override
-    public void accept(IRVisitor visitor){
-        visitor.accept(this);
+    public Load(Ir_Value user,Ir_Value Store){
+        super();
+        if(!(Store.Type instanceof Pointer_Type))
+            new FUCKER("[Fatal Error]:Not loading from a pointer");
+        User=user;
+        Operands=new ArrayList<>();
+        Operands.add(Store);
     }
     @Override
     public String To_String(){
-        return " %{}=Icmp {}".formatted(Name,Type.To_String());
+        //%reg=Load <reg type>,<pointer Type> %<pointerName>
+        return " {}=load {},{} {}".formatted(User.To_String(),User.Type.toString(),Operands.get(0).Type.To_String(),Operands.get(0).To_String());
     }
 }
