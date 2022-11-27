@@ -6,15 +6,18 @@ import IR.IRVisitor;
 import IR.ir_type.Ir_Type;
 
 public class Alloca extends Ir_Inst{
-    public String Name;
+    public String Name,target_Name;
     public Ir_Type Type;
+    public String Label1,Label2;
     public Alloca(){
         System.out.println("[Unsuggested Behaviour]:Init alloca without parameters");
         Name="undef";
     }
-    public Alloca(String name,Ir_Type type){
+    public Alloca(String Target_Name,String name,Ir_Type type,String label1,String label2){
         Name=name;
         Type=type;
+        Label1=label1;
+        Label2=label2;
     }
     @Override
     public void accept(IRVisitor visitor){

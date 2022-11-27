@@ -18,6 +18,6 @@ public class Icmp extends Ir_Inst {
     }
     @Override
     public String To_String(){
-        return " %{}=alloca {}".formatted(Name,Type.To_String());
+        return " %{}=Icmp {}".formatted(Name,Type.To_String());
     }
 }

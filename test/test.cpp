@@ -3,9 +3,8 @@ int s;
 int main(){
     int a=3;
     if(a>1)
-        a=1;
-    else
-        a=2;
+        if(a>3)
+            return 0;
     char *c="Asdasd";
         char *d="AsdASDsd";
     bool cc=true;
