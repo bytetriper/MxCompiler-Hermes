@@ -1,17 +1,43 @@
 package IR;
 
 import astnode.ASTVisitor;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+
 import astnode.*;
 import astnode.basicnode.*;
 import astnode.exprnode.*;
 import astnode.defnode.*;
 import astnode.stmtsnode.*;
-
+import utils.GScope;
 public class IRBuilder implements ASTVisitor {
-    public IRBuilder() {
-
+    public GScope GlobalScope;
+    public HashMap<String,String> Rename;
+    public ArrayList<BasicBlock> Blocks;
+    public BasicBlock CurrentBlock;
+    public FuncBlock CurrentFunc;
+    public ArrayList<String> Init_way;
+    public int ClassCnt=0;
+    public void New_Block(){
+        assert(CurrentFunc!=null);
+        CurrentBlock=new BasicBlock(CurrentFunc);
+        Blocks.add(CurrentBlock);
     }
-
+    public void Init(){
+        for(var each:GlobalScope.Classmember.keySet())
+        { 
+            ClassCnt++;
+            Rename.put(each,".class.%d".formatted(ClassCnt));
+        }
+    }
+    public IRBuilder(ProgramNode root) {
+        Rename=new HashMap<>();
+        Blocks=new ArrayList<>();
+        //New_Block();
+        GlobalScope=root.GlobalScope;
+        Init();
+    }
     @Override
     public void visit(SuiteNode tmpnode) {
         
@@ -19,6 +45,10 @@ public class IRBuilder implements ASTVisitor {
 
     @Override
     public void visit(ProgramNode tmpnode) {
+        for(var each:tmpnode.UnitList)
+        {
+            visit(each);
+        }
     };
 
     @Override
@@ -27,6 +57,7 @@ public class IRBuilder implements ASTVisitor {
 
     @Override
     public void visit(ClassdefNode tmpnode) {
+        visit(tmpnode.suite);
     };
 
     @Override
@@ -39,6 +70,8 @@ public class IRBuilder implements ASTVisitor {
 
     @Override
     public void visit(FuncdefNode tmpnode) {
+        
+        visit(tmpnode.suite);
     };
 
     @Override

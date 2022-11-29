@@ -1,10 +1,7 @@
 public class test {
     static public void main(String args[])
     {
-        A a=new A();
-        B b=new B();
-        //System.out.println(b instanceof A);
-        fun(a);
+        System.out.println("%d".formatted(1));
     }
     static public void fun(A c)
     {

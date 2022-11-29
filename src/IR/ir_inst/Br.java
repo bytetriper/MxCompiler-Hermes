@@ -10,7 +10,7 @@ import utils.Init_Warning;
 
 public class Br extends Ir_Inst{
     public Br(){
-        new Init_Warning("Br");
+        new Init_Warning("Br_Inst");
     }
     public Br(Ir_Value cond,Ir_Value Label1,Ir_Value Label2)
     {
@@ -31,6 +31,6 @@ public class Br extends Ir_Inst{
         Ir_Value cond=Operands.get(0);
         Ir_Value l1=Operands.get(1);
         Ir_Value l2=Operands.get(2);
-        return "br {} {},{} {},{} {}".formatted(cond.Type.To_String(),cond.To_String(),l1.Type.To_String(),l1.To_String(),l2.Type.To_String(),l2.toString());
+        return "br {} {},{} {},{} {}".formatted(cond.Type.To_String(),cond.To_String(),l1.Type.To_String(),l1.To_String(),l2.Type.To_String(),l2.To_String());
     }
 }

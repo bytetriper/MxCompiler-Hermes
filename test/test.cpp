@@ -1,17 +1,23 @@
 
 int s;
+class A{
+    public: 
+    int a,b,c;
+    A(){
+
+    }
+};
+int asd(){
+    return 1;
+}
 int main(){
-    int a=3;
-    if(a>1)
-        if(a>3)
-            return 0;
-    char *c="Asdasd";
-        char *d="AsdASDsd";
-    bool cc=true;
-    a<<=1;
-    if(cc)
-    return 0;
-    else 
+    A a;
+    int b=1;
+    b+=1;
+    b=asd();
+    if(b>1)
         return 1;
+    int c=b;
+    return 0;
 
 }
