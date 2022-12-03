@@ -1,12 +1,17 @@
 public class test {
     static public void main(String args[])
     {
-        System.out.println("%d".formatted(1));
-    }
-    static public void fun(A c)
-    {
-        System.out.println(c instanceof B);
+        int a=4;
+        int b=1;
+        int c=a+b;
+        if(c>1){
+            a=1;
+        }
+        else
+            b=1;
     }
 }
-class A{A(){}}
-class B extends A{B(){super();}}
+class A{
+    public int a;
+    public A(){}
+}

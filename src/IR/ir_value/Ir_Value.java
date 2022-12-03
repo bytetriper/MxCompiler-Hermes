@@ -6,12 +6,6 @@ import utils.FUCKER;
 public abstract class Ir_Value {
     public String Name;
     public Ir_Type Type;
-    public int get_size(){
-        new FUCKER("[fatal error]:Unoverrode Get_size():Ir_Value");
-        return 0;
-    }
-    public String To_String(){
-        new FUCKER("[fatal error]:Unoverrode To_String():Ir_Value");
-        return "";
-    }
+    abstract public int get_size();
+    abstract public String To_String();
 }

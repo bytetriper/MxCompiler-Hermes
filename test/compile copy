@@ -1,0 +1,2 @@
+#!/bin/bash
+clang -S -emit-llvm -fno-discard-value-names -O0 test.cpp

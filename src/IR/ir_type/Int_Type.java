@@ -18,6 +18,6 @@ public class Int_Type extends Ir_Type {
     }
     @Override
     public String To_String(){
-        return "int";
+        return "i%d".formatted(size);
     }
 }

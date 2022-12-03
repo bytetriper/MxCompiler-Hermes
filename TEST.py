@@ -1,10 +1,8 @@
 import os
 from re import *
 import subprocess
-
-from sympy import content, false
-assert(os.getcwd()==r'D:\VS_C\Compiler\src')# Compiler的绝对路径
-for path,pname,file in os.walk(r'..\Compiler-2021-testcases\sema'):#testcase相对Compiler的路径
+assert(os.getcwd()==r'/root/MxCompiler-Hermes/src')# Compiler的绝对路径
+for path,pname,file in os.walk(r'../Compiler-2021-testcases/sema'):#testcase相对Compiler的路径
     #print(path,file)
     for f in file:
         if not match(".*mx.*",f):
@@ -15,6 +13,7 @@ for path,pname,file in os.walk(r'..\Compiler-2021-testcases\sema'):#testcase相�
         ans=False
         with open(name,'r',encoding='utf8') as p:
             content=p.read()
+            #print(content.find("Verdict: Success"))
             if(content.find("Verdict: Success")!=-1):
                 ans=True
         ret=subprocess.run('java Compiler {}'.format(name),shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=1)

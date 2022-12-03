@@ -18,6 +18,6 @@ public class Ir_Reg extends Ir_Value{
     }
     @Override
     public String To_String(){
-        return "%{}".formatted(Name);
+        return "%%%s".formatted(Name);
     }
 }

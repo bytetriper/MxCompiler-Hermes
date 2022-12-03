@@ -36,6 +36,6 @@ public class Icmp extends Ir_Inst {
     @Override
     public String To_String(){
         //%target=Icmp <Cond> <type> <op1> , <op2>
-        return " %{}=Icmp {} {} {},{}".formatted(User.To_String(),choice,Operands.get(0).To_String(),Operands.get(1).To_String());
+        return " %s=Icmp %s %s %s,%s".formatted(User.To_String(),choice,Operands.get(0).To_String(),Operands.get(1).To_String());
     }
 }

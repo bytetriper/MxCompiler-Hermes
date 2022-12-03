@@ -296,8 +296,9 @@ public class astbuilder extends MxBaseVisitor<AstNode>  {
 			ForstmtNode node=new ForstmtNode();
 			if(Fetch_all)node.content=ctx.getText();
 			node.Init=new NullNode();
-			node.End=new NullNode();
+			node.End=new BoolNode();
 			node.Change=new NullNode();
+			((BoolNode)node.End).BoolValue=true;
 			if(ctx.InitVdf!=null || ctx.InitCond!=null)
 			{
 				if(ctx.InitVdf!=null)
@@ -595,7 +596,7 @@ public class astbuilder extends MxBaseVisitor<AstNode>  {
 		{
 			IntegerNode node=new IntegerNode();
 			if(Fetch_all)node.content=ctx.getText();
-			node.IntValue=Long.parseLong(ctx.Integer().getText());
+			node.IntValue=Integer.parseInt(ctx.Integer().getText());
 			return node;
 		}
 		if(ctx.BoolConst()!=null)

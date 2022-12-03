@@ -45,6 +45,11 @@ public class Struct_Type extends Ir_Type {
             new FUCKER("[Fatal Error]:No member {} in the class {} you asked".formatted(member));
         return Mem_idx.get(member);
     }
+    public int Get_Offset(String member){
+        if(!Mem_idx.containsKey(member))
+            new FUCKER("[Fatal Error]:No member {} in the class {} you asked".formatted(member));
+        return Mem_offset.get(member);
+    }
     @Override
     public int get_size(){
         return struct_size/4;//byte,not bit

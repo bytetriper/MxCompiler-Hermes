@@ -21,6 +21,6 @@ public class Ir_IntConstant extends Ir_Value{
     }
     @Override
     public String To_String(){
-        return "{}".formatted(val);
+        return "%s".formatted(val);
     }
 }

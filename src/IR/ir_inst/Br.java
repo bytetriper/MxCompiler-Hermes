@@ -2,7 +2,7 @@ package IR.ir_inst;
 
 import java.util.ArrayList;
 
-
+import IR.BasicBlock;
 import IR.ir_type.Label_Type;
 import IR.ir_value.Ir_Value;
 import utils.FUCKER;
@@ -29,8 +29,8 @@ public class Br extends Ir_Inst{
     public String To_String(){
         //br <cond type> <cond name>,label(<label1 type>) <label1 name>,label(<label2 type>) <label2 name>
         Ir_Value cond=Operands.get(0);
-        Ir_Value l1=Operands.get(1);
-        Ir_Value l2=Operands.get(2);
-        return "br {} {},{} {},{} {}".formatted(cond.Type.To_String(),cond.To_String(),l1.Type.To_String(),l1.To_String(),l2.Type.To_String(),l2.To_String());
+        BasicBlock l1=(BasicBlock)Operands.get(1);
+        BasicBlock l2=(BasicBlock)Operands.get(2);
+        return "br %s %s,%s %%%s,%s %%%s".formatted(cond.Type.To_String(),cond.To_String(),l1.Type.To_String(),l1.Name,l2.Type.To_String(),l2.Name);
     }
 }

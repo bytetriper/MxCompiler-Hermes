@@ -2,7 +2,7 @@ package astnode.basicnode;
 
 import astnode.ASTVisitor;
 public class IntegerNode extends ConstNode{
-    public Long IntValue;
+    public int IntValue;
     public IntegerNode(){
         super();
     }

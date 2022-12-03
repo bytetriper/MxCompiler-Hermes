@@ -23,17 +23,18 @@ if 1:
     except:
         pass
     try:
-        ret=subprocess.run("rm */*.class",shell=True,stdout=subpsocess.PIPE,stderr=subprocess.PIPE,timeout=10)
+        ret=subprocess.run("rm */*.class",shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=10)
         print(ret.stderr.decode('utf8','replace'))
     except:
         pass
     try:
-        ret=subprocess.run("rm */*/*.class",shell=True,stdout=subpsocess.PIPE,stderr=subprocess.PIPE,timeout=10)
+        ret=subprocess.run("rm */*/*.class",shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=10)
         print(ret.stderr.decode('utf8','replace'))
     except:
         pass
     #print(ret.stderr.decode(errors='ignore'))
     try:
+        pass
         ret=subprocess.run("javac Compiler.java",shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=10)
     except:
         pass

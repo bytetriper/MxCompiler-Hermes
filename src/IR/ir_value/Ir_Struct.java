@@ -27,4 +27,12 @@ public class Ir_Struct extends Ir_Value {
             Member.add(new Ir_NullPtrConstant());
         }
     }
+    @Override
+    public int get_size(){
+        return Type().get_size();
+    }
+    @Override
+    public String To_String(){
+        return "";
+    }
 }

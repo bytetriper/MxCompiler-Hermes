@@ -20,6 +20,6 @@ public class Ir_StringConstant extends Ir_Value{
     }
     @Override
     public String To_String(){//??
-        return "{}".formatted(val);//?
+        return "%s".formatted(val);//?
     }
 }

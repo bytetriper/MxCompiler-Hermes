@@ -20,6 +20,6 @@ public class Array_Type extends Ir_Type {
     }
     @Override
     public String To_String(){
-        return "[{} x {}]".formatted(length,To_Type.To_String());
+        return "[%s x %s]".formatted(length,To_Type.To_String());
     }
 }

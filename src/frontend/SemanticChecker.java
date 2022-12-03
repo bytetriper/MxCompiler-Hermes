@@ -2,10 +2,6 @@ package frontend;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.management.RuntimeErrorException;
-
-import org.stringtemplate.v4.ST;
-
 import astnode.*;
 import astnode.basicnode.*;
 import astnode.exprnode.*;
@@ -296,7 +292,7 @@ public void addResidual(SuiteNode suite,Scope parent)
     System.out.println(tmpnode.content);
     if(tmpnode.isfunc)
     {
-        System.out.println(String.format("[Visit Func Node]Func:%s",tmpnode.content));
+        //System.out.println(String.format("[Visit Func Node]Func:%s",tmpnode.content));
         if(!CurrentScope.HasMethod(tmpnode.name)&&!tmpnode.name.equals(".new"))//new f() should be tolerated
             FUCK(String.format("[Func]Func %s not defined",tmpnode.name));
          if(CurrentScope.HasMethod(tmpnode.name))
@@ -353,6 +349,7 @@ public void addResidual(SuiteNode suite,Scope parent)
             //System.out.println(each.content);;
             if(!GlobalScope.InClassScope(((FuncdefNode)each).type.type));
             //WCurrentScope=((FuncdefNode)each).scope;
+            ((FuncdefNode)each).inClass=tmpnode.Name;
             each.accept(this);
         }
         else
@@ -603,6 +600,7 @@ public boolean AssignCheck(TypeNode lv,TypeNode rv,String op)//TypeCheck ,[]a=nu
     tmpnode.suite.scope.faScope=CurrentScope;
     CurrentScope=tmpnode.suite.scope;
     tmpnode.inLoop=true;
+    tmpnode.suite.scope.isloop=tmpnode;
     pass(tmpnode,tmpnode.Init);
     pass(tmpnode,tmpnode.Change);
     pass(tmpnode,tmpnode.End);
@@ -652,6 +650,7 @@ public boolean AssignCheck(TypeNode lv,TypeNode rv,String op)//TypeCheck ,[]a=nu
 @Override
  public void visit(WhilestmtNode tmpnode){
     tmpnode.inLoop=true;
+    tmpnode.suite.scope.isloop=tmpnode;
     pass(tmpnode,tmpnode.End);
     tmpnode.End.accept(this);
     if(!IsSameType(tmpnode.End,"bool"))

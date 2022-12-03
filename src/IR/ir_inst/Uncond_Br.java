@@ -25,6 +25,6 @@ public class Uncond_Br extends Ir_Inst{
     public String To_String(){
         //br label(<label1 type>) <label1 name>
         Ir_Value l1=Operands.get(0);
-        return "br {} {}".formatted(l1.Type.To_String(),l1.To_String());
+        return "br %s %%%s".formatted(l1.Type.To_String(),l1.Name);
     }
 }

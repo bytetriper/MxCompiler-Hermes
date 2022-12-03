@@ -21,6 +21,6 @@ public class Load extends Ir_Inst {
     @Override
     public String To_String(){
         //%reg=Load <reg type>,<pointer Type> %<pointerName>
-        return " {}=load {},{} {}".formatted(User.To_String(),User.Type.toString(),Operands.get(0).Type.To_String(),Operands.get(0).To_String());
+        return " %s=load %s,%s %s".formatted(User.To_String(),User.Type.To_String(),Operands.get(0).Type.To_String(),Operands.get(0).To_String());
     }
 }

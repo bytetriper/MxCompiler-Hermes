@@ -10,15 +10,12 @@ public class GEP extends Ir_Inst{
     public GEP(){
         new Init_Warning("GEP_Inst");
     }
-    public GEP(Ir_Value user,Ir_Value Target,ArrayList<Ir_Value> offset)
+    public GEP(Ir_Value user,Ir_Value Target,Ir_Value offset)
     {
         User=user;
         Operands=new ArrayList<>();
         Operands.add(Target);
-        for(var each:offset)
-        {
-            Operands.add(each);
-        }
+        Operands.add(offset);
     }
     @Override
     public String To_String(){
@@ -34,6 +31,6 @@ public class GEP extends Ir_Inst{
             str+=Operands.get(i).To_String();
         }
         Ir_Value Target=Operands.get(0);
-        return "{} = getelementptr {},{} {},{}".formatted(User.Name,User.Type.To_String(),Target.Type.To_String(),Target.Name,str);
+        return "%s = getelementptr %s,%s %s,%s".formatted(User.Name,User.Type.To_String(),Target.Type.To_String(),Target.Name,str);
     }
 }
