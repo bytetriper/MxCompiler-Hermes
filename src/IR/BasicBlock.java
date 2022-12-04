@@ -65,6 +65,7 @@ public class BasicBlock extends Ir_Value{
         String str=Name+":\n\t";
         for(var each:Inst)
         {
+            //System.out.println(each.To_String());
             str+=each.To_String();
             str+="\n\t";
         }
