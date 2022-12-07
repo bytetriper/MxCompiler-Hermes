@@ -24,6 +24,7 @@ public class SymbolCollector implements ASTVisitor{
             }
             if(each instanceof FuncdefNode)
             {
+                System.out.println("[add func]%s".formatted(((FuncdefNode)each).Name));
                 tmpnode.GlobalScope.Push(((FuncdefNode)each).Name,(FuncdefNode)each);
                 ((FuncdefNode)each).scope.faScope=tmpnode.GlobalScope;
                 each.accept(this);

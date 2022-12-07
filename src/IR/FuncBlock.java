@@ -8,6 +8,7 @@ import IR.ir_inst.Alloca;
 import IR.ir_inst.Br;
 import IR.ir_inst.Load;
 import IR.ir_inst.Ret;
+import IR.ir_inst.Store;
 import IR.ir_inst.Uncond_Br;
 import IR.ir_type.Ir_Type;
 import IR.ir_type.Pointer_Type;
@@ -17,7 +18,7 @@ import IR.ir_value.Ir_Reg;
 import IR.ir_value.Ir_Value;
 import IR.ir_value.Ir_VoidConst;
 import utils.FUCKER;
-
+import utils.Scope;
 public class FuncBlock extends Ir_Value{
     public ArrayList<BasicBlock> blks;
     public BasicBlock Entry,Exit;
@@ -25,7 +26,7 @@ public class FuncBlock extends Ir_Value{
     public ArrayList<Ir_Value> Parameter;
     public Ir_Reg retval;
     public Ir_Value This;
-    public FuncBlock(Ir_Func func,ArrayList<Ir_Value> Paras){
+    public FuncBlock(Ir_Func func,ArrayList<Ir_Value> Paras,Scope CurrentScope){
         Type=func.Type;
         Name=func.To_String();
         Parameter=new ArrayList<>(Paras);
@@ -35,6 +36,18 @@ public class FuncBlock extends Ir_Value{
         Exit=new BasicBlock(this,"Exit");//Can Modify
         Ir_Reg return_load=new Ir_Reg(".retval",Type);
         Load end_load=new Load(return_load, retval);
+        for(var each:Paras)//SP for value type int and bool (need to create a pointer to save the value)
+        {
+            if(!(each.Type instanceof Pointer_Type))
+            {
+                Ir_Reg para_addr=new Ir_Reg("%s_addr".formatted(each.Name), new Pointer_Type(each.Type));
+                Entry.add_inst(new Alloca(para_addr));
+                Entry.add_inst(new Store(para_addr,each));
+                CurrentScope.Push_Value(each.Name,para_addr);
+            }
+            else
+                CurrentScope.Push_Value(each.Name,each);
+        }
         if(func.Type instanceof Void_Type)
         {
             Exit.end_block_with(new Ret(new Ir_VoidConst()));
@@ -87,6 +100,7 @@ public class FuncBlock extends Ir_Value{
         str+="{\n";
         str+=Entry.To_String()+"\n";
         for(var each:blks){
+            //System.out.println(each.To_String()+"\n");
             str+=each.To_String()+"\n";
         }
         str+=Exit.To_String()+"\n";

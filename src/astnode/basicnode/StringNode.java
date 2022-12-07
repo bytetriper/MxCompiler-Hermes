@@ -1,8 +1,10 @@
 package astnode.basicnode;
 
+import java.util.ArrayList;
+
 import astnode.ASTVisitor;
 public class StringNode extends ConstNode{
-    public String content;
+    public ArrayList<Integer> Content;
     public StringNode(){
         super();
     }

@@ -14,9 +14,12 @@ public class GScope extends Scope{
         FuncdefNode n1=new FuncdefNode("print"),
         get1=new FuncdefNode("getInt"),
         print1=new FuncdefNode("printf_no_collision_please"),
+        malloc=new FuncdefNode("_malloc"),
         ss1=new FuncdefNode(".size");
         get1.type=new TypeNode("int");
         print1.type=new TypeNode("void");
+        malloc.type=new TypeNode("int",1);
+        malloc.paras.add(new SingleAssignNode(new TypeNode("int")));
         print1.paras.add(new SingleAssignNode(new TypeNode("int")));
         ss1.type=new TypeNode("int");
         /* 
@@ -60,6 +63,7 @@ public class GScope extends Scope{
         Funcmember.put(".size", ss1);
         Funcmember.put("printf_no_collision_please",print1);
         Funcmember.put("getInt",get1);
+        Funcmember.put("_malloc",malloc);
     }
     public GScope(){
         super();

@@ -6,7 +6,6 @@ import astnode.defnode.ClassdefNode;
 import utils.FUCKER;
 
 public class Struct_Type extends Ir_Type {
-    public HashMap<String,Integer> Mem_idx=new HashMap<>();
     public HashMap<String,Integer> Mem_offset=new HashMap<>();
     public int struct_size;
     public String name;
@@ -19,35 +18,24 @@ public class Struct_Type extends Ir_Type {
             //each:Vardef Node
             if(!tmpNode.scope.Varmember.get(each).type.equals("int")&&!tmpNode.scope.Varmember.get(each).type.equals("Bool"))
             {
-                Mem_offset.put(each,offset_cnt);
-                Mem_idx.put(each,cnt);
+                Mem_offset.put(each,cnt);
                 cnt+=1;
-                offset_cnt+=32;
             }
             else if(tmpNode.scope.Varmember.get(each).type.equals("int"))
             {
-                Mem_offset.put(each,offset_cnt);
-                Mem_idx.put(each,cnt);
+                Mem_offset.put(each,cnt);
                 cnt+=1;
-                offset_cnt+=32;
             }
             else{
-                Mem_offset.put(each,offset_cnt);
-                Mem_idx.put(each,cnt);
+                Mem_offset.put(each,cnt);
                 cnt+=1;
-                offset_cnt+=1;
             }
         }
         struct_size=offset_cnt;
     }
-    public int Get_Idx(String member){
-        if(!Mem_idx.containsKey(member))
-            new FUCKER("[Fatal Error]:No member {} in the class {} you asked".formatted(member));
-        return Mem_idx.get(member);
-    }
     public int Get_Offset(String member){
-        if(!Mem_idx.containsKey(member))
-            new FUCKER("[Fatal Error]:No member {} in the class {} you asked".formatted(member));
+        if(!Mem_offset.containsKey(member))
+            new FUCKER("[Fatal Error]:No member %s in the class %s you asked".formatted(member,name));
         return Mem_offset.get(member);
     }
     @Override

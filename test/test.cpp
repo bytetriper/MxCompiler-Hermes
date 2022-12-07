@@ -1,12 +1,11 @@
+
 bool s=1;
-int *a;
-struct A{
-    int a;
-};
+int **a;
 void f(){
-    return;
+    char *s="asdasd";
+    "Asdaad";
 }
+int siz[2];
 int main(){
-   a=new int [3];
     return 0;
 }

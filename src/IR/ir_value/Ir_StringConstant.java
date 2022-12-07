@@ -3,16 +3,16 @@ import IR.ir_type.Array_Type;
 import IR.ir_type.Int_Type;
 import utils.Init_Warning;
 public class Ir_StringConstant extends Ir_Value{
-    public String val;
+    public int[] val;
     public Ir_StringConstant(){
         new Init_Warning("Ir_StringConstant");
-        val="";
+        val=null;
         Type=new Array_Type();
     }
-    public Ir_StringConstant(String value)
+    public Ir_StringConstant(int[] value)
     {
         val=value;
-        Type=new Array_Type(value.length(),new Int_Type(8));
+        //Type=new Array_Type(value.length(),new Int_Type(8));
     }
     @Override
     public int get_size(){

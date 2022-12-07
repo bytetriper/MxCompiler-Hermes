@@ -153,7 +153,7 @@ public void addResidual(SuiteNode suite,Scope parent)
             if(CurrentScope.belongNode instanceof FuncdefNode)
             {
                 FuncdefNode fnode=(FuncdefNode)CurrentScope.belongNode;
-                System.out.println(each.content);
+                //System.out.println(each.content);
                 if(IsSameType(fnode.type, "void")||fnode instanceof ConstructordefNode)//Constructor should be return void
                 {
                     if(((ReturnstmtNode)each).RetValue!=null)
@@ -207,7 +207,7 @@ public void addResidual(SuiteNode suite,Scope parent)
     tmpnode.name.accept(this);
     tmpnode.type=new TypeNode(tmpnode.name.type);
     FuncdefNode node=tmpnode.name.isFuncNode;
-    System.out.println(tmpnode.ExprList);
+    //tem.out.println(tmpnode.ExprList);
     if(node.paras.size()!=tmpnode.ExprList.size())
     {    
         FUCK(String.format("[FuncCall]Func %s Size Not Match.Expect %d,get %d",tmpnode.content,node.paras.size(),tmpnode.ExprList.size()));
@@ -253,7 +253,7 @@ public void addResidual(SuiteNode suite,Scope parent)
         {
             tmpnode.suite.scope.Push(sa.Name,sa);
         }
-    System.out.println(tmpnode.content);
+    //System.out.println(tmpnode.content);
     if(tmpnode.FetchAll)
         tmpnode.suite.scope.faScope=CurrentScope;
     else
@@ -289,7 +289,7 @@ public void addResidual(SuiteNode suite,Scope parent)
 @Override
  public void visit(VarNode tmpnode){
     //CurrentScope.print();
-    System.out.println(tmpnode.content);
+    //System.out.println(tmpnode.content);
     if(tmpnode.isfunc)
     {
         //System.out.println(String.format("[Visit Func Node]Func:%s",tmpnode.content));
@@ -307,14 +307,14 @@ public void addResidual(SuiteNode suite,Scope parent)
         return;
     }
     //GlobalScope.print();
-    System.out.println(String.format("[Visit Var Node]Var:%s",tmpnode.content));
+    //System.out.println(String.format("[Visit Var Node]Var:%s",tmpnode.content));
     if(!CurrentScope.HasValue(tmpnode.name)&&!tmpnode.name.equals(".new"))//Var from new should be tolerated
         FUCK(String.format("[Var]Var %s not defined",tmpnode.name));  
     if(tmpnode.type==null)
     {    
         //System.out.println(CurrentScope.Find_Type(tmpnode.name).dimension);
         tmpnode.type=new TypeNode(CurrentScope.Find_Type(tmpnode.name));
-        System.out.println(String.format("[Analyzing]Decide Var %s as Type %s[%d]",tmpnode.name,tmpnode.type.type,tmpnode.type.dimension));
+        //System.out.println(String.format("[Analyzing]Decide Var %s as Type %s[%d]",tmpnode.name,tmpnode.type.type,tmpnode.type.dimension));
     }
     if(tmpnode.SizeList!=null)
     {    
@@ -605,7 +605,7 @@ public boolean AssignCheck(TypeNode lv,TypeNode rv,String op)//TypeCheck ,[]a=nu
     pass(tmpnode,tmpnode.Init);
     pass(tmpnode,tmpnode.Change);
     pass(tmpnode,tmpnode.End);
-    System.out.println(tmpnode.End.content);
+    //System.out.println(tmpnode.End.content);
     if(tmpnode.Init instanceof VardefNode)
     {
         SingleAssignNode sgn=((VardefNode)tmpnode.Init).VarList.get(0);
@@ -627,7 +627,7 @@ public boolean AssignCheck(TypeNode lv,TypeNode rv,String op)//TypeCheck ,[]a=nu
     //CurrentScope.print();
     
     tmpnode.Cond.accept(this);
-    System.out.println(tmpnode.Cond.content);
+    //System.out.println(tmpnode.Cond.content);
     if(!IsSameType(tmpnode.Cond,"bool"))
         FUCK(String.format("[If Condition]Type %s is Not Bool!",tmpnode.Cond.type.type));
     pass(tmpnode,tmpnode.Ifsuite);

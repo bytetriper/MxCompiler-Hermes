@@ -588,12 +588,19 @@ public class astbuilder extends MxBaseVisitor<AstNode>  {
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
+	public ArrayList<Integer> To_ASCII(String str){
+		ArrayList<Integer> tmp=new ArrayList<>();
+		char [] tmpc=str.toCharArray();
+		for(int i=0;i<str.length();++i)
+			tmp.add((int)tmpc[i]);
+		return tmp;
+	}
 	@Override public AstNode visitAtomExpr(MxParser.AtomExprContext ctx) { 
 		if(ctx.ConstString()!=null)
 		{
 			StringNode node=new StringNode();
 			if(Fetch_all)node.content=ctx.getText();
-			node.content=ctx.ConstString().getText();
+			node.Content=To_ASCII(ctx.ConstString().getText());
 			return node;
 		}
 		if(ctx.Integer()!=null)
