@@ -4,10 +4,10 @@ program:   ((classdef ';')|funcdef|(vardef ';'))+ EOF;
 type 
     : Int 
     | Void
-    | String 
+    //| String 
     | Bool 
     | Int listSuf+
-    | String listSuf+
+    //| String listSuf+
     | Bool listSuf+
     | Identifier
     | Identifier listSuf+;//identifier for class name specifically
@@ -92,7 +92,7 @@ fragment
 ESC: '\\\\'|'\\n'|'\\"';
 //value type
 Int : 'int';
-String: 'string';
+//String: 'string'; //No string from now on!
 Bool: 'bool';
 Void: 'void';
 //keys

@@ -3,15 +3,8 @@ import IR.ir_type.Void_Type;
 import utils.FUCKER;
 import utils.Init_Warning;
 public class Ir_VoidConst extends Ir_Value {
-    public boolean val;
-    public Ir_VoidConst(){
-        new Init_Warning("Ir_BoolConstant");
-        val=false;
-        Type=new Void_Type();
-    }
-    public Ir_VoidConst(Boolean value)
+    public Ir_VoidConst()
     {
-        val=value;
         Type=new Void_Type();
     }
     @Override
@@ -21,7 +14,6 @@ public class Ir_VoidConst extends Ir_Value {
     }
     @Override
     public String To_String(){//??
-        new FUCKER("[Unsuggested Behaviour]:To_String a Void");
-        return "";
+        return "void";
     }
 }

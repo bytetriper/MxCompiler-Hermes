@@ -64,6 +64,8 @@ public class BinaryOp extends Ir_Inst {
         // <reg> = <Op type> <reg type> <left name>,<right name>
         // or
         // <reg> = icmp <Op Inst> <type(left==right)> <left name>,<right name>
+        //or
+        // Load(user,value)
         Ir_Value left = Operands.get(0);
         Ir_Value right = Operands.get(1);
         if (choice) {

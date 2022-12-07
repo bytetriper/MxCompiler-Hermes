@@ -60,8 +60,10 @@ public class astbuilder extends MxBaseVisitor<AstNode>  {
 		if(Fetch_all)node.content=ctx.getText();
 		if(ctx.Int()!=null)
 			node.type="int";
-		if(ctx.String()!=null)
+		/* 
+			if(ctx.String()!=null)
 			node.type="string";
+		*/
 		if(ctx.Bool()!=null)
 			node.type="bool";
 		if(ctx.Void()!=null)
@@ -234,7 +236,9 @@ public class astbuilder extends MxBaseVisitor<AstNode>  {
 	@Override public AstNode visitConstructordef(MxParser.ConstructordefContext ctx) {
 		ConstructordefNode node=new ConstructordefNode();
 		if(Fetch_all)node.content=ctx.getText();
-		node.type=new TypeNode(ctx.Identifier().getText());
+		node.type=new TypeNode("void");
+		node.Name=ctx.Identifier().getText()+".construct";
+		System.out.println(node.Name);
 		node.suite=(SuiteNode)visit(ctx.suite()); 
 		node.fa=node;
 		node.suite.scope.belongNode=node;

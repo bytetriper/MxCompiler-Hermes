@@ -71,7 +71,7 @@ public class SymbolCollector implements ASTVisitor{
                 tmpnode.constructor=((ConstructordefNode)stmt);
                 if(((ConstructordefNode)stmt).paras.size()!=0)
                     throw new RuntimeException("Constructor has parameters");
-                if(!((ConstructordefNode)stmt).type.type.equals(tmpnode.Name)) 
+                if((!((ConstructordefNode)stmt).type.type.equals("void"))||(!((ConstructordefNode)stmt).Name.equals(tmpnode.Name+".construct"))) 
                     throw new RuntimeException("[Constructor Check]Constructor unmatched");
                 construct=true;         
                 tmpnode.scope.Push(tmpnode.Name, (FuncdefNode)stmt);

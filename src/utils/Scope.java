@@ -39,7 +39,10 @@ public class Scope {// A Class for suite that is not main suite
     }
 
     public boolean Judge_Value_InClass(String name) {
+        //System.out.println("[Juding]");
+        
         if (Var_Value.containsKey(name)) {
+            //print();
             return isclass;
         }
         if (faScope != null)
@@ -49,7 +52,7 @@ public class Scope {// A Class for suite that is not main suite
     }
 
     public Ir_Value Find_Value(String name) {
-        System.out.println(faScope);
+        //System.out.println(faScope);
         if (Var_Value.containsKey(name)) {
             return Var_Value.get(name);
         }

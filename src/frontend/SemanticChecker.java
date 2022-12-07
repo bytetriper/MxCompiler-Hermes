@@ -427,6 +427,7 @@ public void addResidual(SuiteNode suite,Scope parent)
     if(tmpnode.type.type.equals("void"))
         FUCK("[Varcheck]No void!");
     //System.out.println(tmpnode.value);
+    //CurrentScope.Push(tmpnode.Name, tmpnode);
     if(tmpnode.value!=null)
     {    
         pass(tmpnode,tmpnode.value);
@@ -605,7 +606,11 @@ public boolean AssignCheck(TypeNode lv,TypeNode rv,String op)//TypeCheck ,[]a=nu
     pass(tmpnode,tmpnode.Change);
     pass(tmpnode,tmpnode.End);
     System.out.println(tmpnode.End.content);
-    
+    if(tmpnode.Init instanceof VardefNode)
+    {
+        SingleAssignNode sgn=((VardefNode)tmpnode.Init).VarList.get(0);
+        CurrentScope.Push(sgn.Name,sgn);
+    }
     tmpnode.Init.accept(this);
     tmpnode.Change.accept(this);
     tmpnode.End.accept(this);

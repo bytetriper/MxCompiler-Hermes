@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import IR.ir_type.Bool_Type;
 import IR.ir_type.Int_Type;
+import IR.ir_type.Pointer_Type;
 import IR.ir_value.Ir_BoolConst;
 import IR.ir_value.Ir_IntConstant;
 import IR.ir_value.Ir_Value;
@@ -14,14 +15,14 @@ public class Global_Declare extends Ir_Inst {
         new Init_Warning("Global_Declare");
     }
     public Global_Declare(Ir_Value user){
-        assert(true);//
+        assert(user.Type instanceof Pointer_Type);//
         User=user;
         Operands=new ArrayList<>();
-        if(user.Type instanceof Int_Type)
+        if(((Pointer_Type)user.Type).To_Type instanceof Int_Type)
         {
             Operands.add(new Ir_IntConstant(0));
         }
-        else if(User.Type instanceof Bool_Type)
+        else if(((Pointer_Type)user.Type).To_Type instanceof Bool_Type)
         {
             Operands.add(new Ir_BoolConst(true));
         }
@@ -35,8 +36,8 @@ public class Global_Declare extends Ir_Inst {
 
         //<reg name> =  global <reg type(struct)> zeroinitializer
         if(Operands.size()>0)
-            return "@%s = global %s %s".formatted(User.Name,User.Type.toString(),Operands.get(0).To_String());
+            return "@%s = global %s %s".formatted(User.Name,((Pointer_Type)User.Type).To_Type.To_String(),Operands.get(0).To_String());
         else
-            return "@%s = global %s zeroinitializer".formatted(User.Name,User.Type.To_String());
+            return "@%s = global %s zeroinitializer".formatted(User.Name,((Pointer_Type)User.Type).To_Type.To_String());
     }
 }

@@ -8,17 +8,24 @@ public class GScope extends Scope{
     public void init(){
         Classmember.put("int", new ClassdefNode("int"));
         Classmember.put("bool", new ClassdefNode("bool"));
-        Classmember.put("string", new ClassdefNode("string"));
+        //Classmember.put("string", new ClassdefNode("string"));
         Classmember.put("void", new ClassdefNode("void"));
         Classmember.put("null", new ClassdefNode("null"));
         FuncdefNode n1=new FuncdefNode("print"),
+        get1=new FuncdefNode("getInt"),
+        print1=new FuncdefNode("printf_no_collision_please"),
+        ss1=new FuncdefNode(".size");
+        get1.type=new TypeNode("int");
+        print1.type=new TypeNode("void");
+        print1.paras.add(new SingleAssignNode(new TypeNode("int")));
+        ss1.type=new TypeNode("int");
+        /* 
         n2=new FuncdefNode("println"),
         n3=new FuncdefNode("printInt"),
         n4=new FuncdefNode("printlnInt"),
         s1=new FuncdefNode("getString"),
         s2=new FuncdefNode("toString"),
         i1=new FuncdefNode("getInt"),
-        ss1=new FuncdefNode(".size"),
         b1=new FuncdefNode("length"),
         b2=new FuncdefNode("substring"),
         b3=new FuncdefNode("parseInt"),
@@ -49,8 +56,10 @@ public class GScope extends Scope{
         Funcmember.put("printlnInt", n4);
         Funcmember.put("getInt", i1);
         Funcmember.put("toString", s2);
-        Funcmember.put("getString", s1);
+        Funcmember.put("getString", s1);*/
         Funcmember.put(".size", ss1);
+        Funcmember.put("printf_no_collision_please",print1);
+        Funcmember.put("getInt",get1);
     }
     public GScope(){
         super();

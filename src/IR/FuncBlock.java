@@ -11,9 +11,11 @@ import IR.ir_inst.Ret;
 import IR.ir_inst.Uncond_Br;
 import IR.ir_type.Ir_Type;
 import IR.ir_type.Pointer_Type;
+import IR.ir_type.Void_Type;
 import IR.ir_value.Ir_Func;
 import IR.ir_value.Ir_Reg;
 import IR.ir_value.Ir_Value;
+import IR.ir_value.Ir_VoidConst;
 import utils.FUCKER;
 
 public class FuncBlock extends Ir_Value{
@@ -30,12 +32,19 @@ public class FuncBlock extends Ir_Value{
         blks=new ArrayList<>();
         Entry=new BasicBlock(this,"Entry");//Can Modify
         retval=new Ir_Reg(".retval.p",new Pointer_Type(Type));
-        Entry.add_inst(new Alloca(retval));
         Exit=new BasicBlock(this,"Exit");//Can Modify
         Ir_Reg return_load=new Ir_Reg(".retval",Type);
         Load end_load=new Load(return_load, retval);
-        Exit.add_inst(end_load);
-        Exit.end_block_with(new Ret(return_load));
+        if(func.Type instanceof Void_Type)
+        {
+            Exit.end_block_with(new Ret(new Ir_VoidConst()));
+        }
+        else
+        {
+            Exit.add_inst(end_load);
+            Entry.add_inst(new Alloca(retval));
+            Exit.end_block_with(new Ret(return_load));
+        }
     }
     public void Add_Alloca(Alloca inst){
         Entry.add_inst(inst);
