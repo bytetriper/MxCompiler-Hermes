@@ -33,7 +33,17 @@ public class Call extends Ir_Inst {
         }
         User = user;
     }
-
+    public Call(Ir_Value user, Ir_Func func, Ir_Value paras) {
+        Operands = new ArrayList<>();
+        Func = func;
+        Operands.add(paras);
+        User = user;
+    }
+    public Call(Ir_Func func, Ir_Value paras) {
+        Operands = new ArrayList<>();
+        Func = func;
+        Operands.add(paras);
+    }
     @Override
     public String To_String() {
         //System.out.println(Func.To_String());

@@ -5,7 +5,7 @@ import astnode.basicnode.*;
 public class ConstructordefNode extends FuncdefNode{
     public ConstructordefNode(){
         super();
-        type=new TypeNode();
+        type=new TypeNode("void");
         type.fa=this;
     }
     @Override

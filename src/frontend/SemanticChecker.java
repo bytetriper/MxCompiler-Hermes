@@ -1,4 +1,5 @@
 package frontend;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -292,7 +293,6 @@ public void addResidual(SuiteNode suite,Scope parent)
     //System.out.println(tmpnode.content);
     if(tmpnode.isfunc)
     {
-        //System.out.println(String.format("[Visit Func Node]Func:%s",tmpnode.content));
         if(!CurrentScope.HasMethod(tmpnode.name)&&!tmpnode.name.equals(".new"))//new f() should be tolerated
             FUCK(String.format("[Func]Func %s not defined",tmpnode.name));
          if(CurrentScope.HasMethod(tmpnode.name))
@@ -360,6 +360,18 @@ public void addResidual(SuiteNode suite,Scope parent)
     CurrentScope=CurrentScope.faScope;
     if(tmpnode.constructor!=null&&tmpnode.constructor.Returned)
         FUCK(String.format("[Constructor Check]class constructor %s has return value",tmpnode.Name ));
+    if(tmpnode.constructor==null)//Add a default constructor
+    {
+        ConstructordefNode Void_ConsructorNode= new ConstructordefNode();
+        Void_ConsructorNode.suite=new SuiteNode();
+        Void_ConsructorNode.Name="construct";
+        Void_ConsructorNode.inClass=tmpnode.Name;
+        Void_ConsructorNode.scope.faScope=tmpnode.scope;
+        tmpnode.constructor=Void_ConsructorNode;
+        tmpnode.suite.StmtList.add(Void_ConsructorNode);
+        Void_ConsructorNode.accept(this);
+        tmpnode.scope.Push(Void_ConsructorNode.Name, Void_ConsructorNode);
+    }
  };
 @Override
  public void visit(ConstructordefNode tmpnode){
@@ -375,7 +387,6 @@ public void addResidual(SuiteNode suite,Scope parent)
     tmpnode.scope.belongNode=tmpnode;
     addResidual(tmpnode.suite, tmpnode.scope);
     CurrentScope=tmpnode.scope;
-    //System.out.println(tmpnode.content);
     for(var each:tmpnode.suite.StmtList)
     {
         //System.out.println(each.content);
@@ -419,8 +430,8 @@ public void addResidual(SuiteNode suite,Scope parent)
         else
             tmpnode.Returned=true;
     }
-    if(tmpnode.Returned)
-        System.out.println(String.format("%s",tmpnode.Name));
+    //if(tmpnode.Returned)
+    //    System.out.println(String.format("%s",tmpnode.Name));
 };  
 @Override
  public void visit(SingleAssignNode tmpnode){
@@ -454,7 +465,7 @@ public boolean AssignCheck(TypeNode lv,TypeNode rv,String op)//TypeCheck ,[]a=nu
  public void visit(VardefNode tmpnode){
     //System.out.println(tmpnode.content);
     if(!GlobalScope.InClassScope(tmpnode.type.type))
-        FUCK("[Vardef]NO SUCH TYPE");
+        FUCK("[Vardef]NO SUCH TYPE %s".formatted(tmpnode.type.type));
     if(tmpnode.type.type.equals("void"))
         FUCK("[Vardef]No void!");
     for(var sa:tmpnode.VarList)

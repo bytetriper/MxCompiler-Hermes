@@ -101,7 +101,6 @@ public class Compiler {
             return false;
         }
         bool LE_Compare_String_Together_No_Collision_Please(string a,string b){
-        {
             return (Less_Compare_String_Together_No_Collision_Please(a,b))|(Equal_String_Together_No_Collision_Please(a,b));
         }
         bool Greater_Compare_String_Together_No_Collision_Please(string a,string b){
@@ -160,8 +159,12 @@ public class Compiler {
                 tmp.content[i]=a[i];
             }
             return tmp;
-            }
         }
+    """;
+    static public String Format_Prefix="""
+    source_filename = \"test.cpp\"
+    target datalayout = \"e-m:e-p:32:32-p270:32:32-p271:32:32-p272:64:64-f64:32:64-f80:32-n8:16:32-S128\"
+    target triple = \"i386-pc-linux-gnu\"
     """;
     public static void main(String[] args) throws Exception {
         //InputStream input=System.in;
@@ -170,12 +173,14 @@ public class Compiler {
             input=new FileInputStream(args[0]);
             
         }else
-        {    input=System.in;
+        {    
+            input=System.in;
         }
         s = new Scanner(input).useDelimiter("\\A");
         result = s.hasNext() ? s.next() : "";
-        System.out.println(result);
-        result=prefix+result;
+        //System.out.println(result);
+        if(args.length>1)    
+            result=prefix+result;
         //MxLexer lexer=new MxLexer(CharStreams.fromStream((input)));
         MxLexer lexer=new MxLexer(CharStreams.fromString(result));
         //lexer.removeErrorListeners();
@@ -196,7 +201,7 @@ public class Compiler {
          
         IRBuilder IBD=new IRBuilder(node);
         node.accept(IBD);
-        System.out.print(IBD.To_String());
+        System.out.print(Format_Prefix+IBD.To_String());
         //node.GlobalScope.print();
     }
 }

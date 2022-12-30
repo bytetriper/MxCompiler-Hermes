@@ -237,8 +237,8 @@ public class astbuilder extends MxBaseVisitor<AstNode>  {
 		ConstructordefNode node=new ConstructordefNode();
 		if(Fetch_all)node.content=ctx.getText();
 		node.type=new TypeNode("void");
-		node.Name=ctx.Identifier().getText()+".construct";
-		System.out.println(node.Name);
+		node.Name="construct";
+		//System.out.println(node.Name);
 		node.suite=(SuiteNode)visit(ctx.suite()); 
 		node.fa=node;
 		node.suite.scope.belongNode=node;

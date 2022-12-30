@@ -16,7 +16,7 @@ public class Global_DeclareVar extends Ir_Inst {//Only used For Array
     }
     @Override
     public String To_String(){
-        //<(global)reg name> = private constant <user Type>.ToType [(<val type> <val value>)*] 
+        //<(global)reg name> = private constant <user Type> [(<val type> <val value>)*] 
         String str="";
         for(int i=0;i<Operands.size();++i)
         {

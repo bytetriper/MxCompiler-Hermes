@@ -29,6 +29,7 @@ public class BinaryOp extends Ir_Inst {
             put("%%", "srem");
             put("||", "or");
             put("&&", "and");
+            put("%", "urem");
         }
     };
     private static HashMap<String, String> OtherOpMap = new HashMap<>() {
@@ -37,7 +38,7 @@ public class BinaryOp extends Ir_Inst {
             put(">=", "sge");
             put("<", "slt");
             put("<=", "sle");
-            put("!=", "nq");
+            put("!=", "ne");
             put("==", "eq");
         }
     };

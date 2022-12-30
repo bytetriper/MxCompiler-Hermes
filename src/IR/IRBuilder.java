@@ -10,8 +10,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.jar.Attributes.Name;
 
+import javax.lang.model.util.ElementScanner14;
 import javax.management.ValueExp;
-
 import IR.ir_inst.Alloca;
 import IR.ir_inst.Br;
 import IR.ir_inst.Call;
@@ -20,9 +20,12 @@ import IR.ir_inst.Declare_Func;
 import IR.ir_inst.GEP;
 import IR.ir_inst.Global_Declare;
 import IR.ir_inst.Global_DeclareVar;
+import IR.ir_inst.Inttoptr;
 import IR.ir_inst.BinaryOp;
+import IR.ir_inst.Bitcast;
 import IR.ir_inst.Ir_Inst;
 import IR.ir_inst.Load;
+import IR.ir_inst.Ptrtoint;
 import IR.ir_inst.Ret;
 import IR.ir_inst.Store;
 import IR.ir_inst.Trunc;
@@ -73,9 +76,9 @@ public class IRBuilder implements ASTVisitor {
         CurrentFunc.Add_Block(CurrentBlock);
     }
 
-    public boolean is_Bool_Type(Ir_Type type) {
+    static public boolean is_Bool_Type(Ir_Type type) {
         if (type instanceof Int_Type) {
-            return ((Int_Type) type).size == 1;
+            return ((Int_Type) type).size == 1 || ((Int_Type) type).size == 8;
         }
         return false;
     }
@@ -86,8 +89,10 @@ public class IRBuilder implements ASTVisitor {
         else {
             assert (tmpnode.Pointer != null);
             Ir_Reg tmpvalue = new Ir_Reg(Find_Available_Name(".middle", 0), To_Ir_Type(tmpnode.type));
-            if (is_Bool_Type(tmpnode.Pointer.Type)) {
-                Ir_Reg ToBool = new Ir_Reg(Find_Available_Name(".ToBool", 0), new Int_Type(1));
+            // DEBUG(tmpnode.content);
+            // DEBUG(((Pointer_Type)tmpnode.Pointer.Type).To_Type.To_String());
+            if (tmpnode.type.type.equals("bool") && tmpnode.type.dimension == 0) {
+                Ir_Reg ToBool = new Ir_Reg(Find_Available_Name(".ToBool", 0), new Int_Type(8));
                 CurrentBlock.add_inst(new Load(ToBool, tmpnode.Pointer));
                 CurrentBlock.add_inst(new Trunc(tmpvalue, ToBool));
                 return tmpvalue;
@@ -95,6 +100,22 @@ public class IRBuilder implements ASTVisitor {
             CurrentBlock.add_inst(new Load(tmpvalue, tmpnode.Pointer));
             return tmpvalue;
         }
+    }
+
+    public Ir_Value Get_Value(Ir_Value tmpValue) {
+        if (tmpValue.Type instanceof Pointer_Type) {
+            if (is_Bool_Type((((Pointer_Type) tmpValue.Type).To_Type))) {
+                Ir_Reg tmpvalue = new Ir_Reg(Find_Available_Name(".middle", 0), new Int_Type(8));
+                Ir_Reg ToBool = new Ir_Reg(Find_Available_Name(".ToBool", 0), new Int_Type(1));
+                CurrentBlock.add_inst(new Load(ToBool, tmpValue));
+                CurrentBlock.add_inst(new Trunc(tmpvalue, ToBool));
+                return tmpvalue;
+            }
+            Ir_Value ret = new Ir_Reg(Find_Available_Name(tmpValue.Name, 0), ((Pointer_Type) tmpValue.Type).To_Type);
+            CurrentBlock.add_inst(new Load(ret, tmpValue));
+            return ret;
+        }
+        return tmpValue;
     }
 
     public void Store_Value(Ir_Value user, Ir_Value Store) {
@@ -115,14 +136,6 @@ public class IRBuilder implements ASTVisitor {
         String Name = Find_Available_Name(tmpnode.name, 0);
         Names.add(Name);
         Ir_Type type = To_Ir_Type(tmpnode.type);
-        if (type instanceof Bool_Type) {
-            Ir_Reg tmpValue = new Ir_Reg(Name, new Pointer_Type(new Int_Type(8)));// SP
-            if (CurrentBlock == null)// For global Initialization
-                Init_Declare.add(new Global_Declare(tmpValue));
-            else
-                CurrentBlock.add_inst(new Alloca(tmpValue));
-            return tmpValue;
-        }
         Ir_Reg tmpValue = new Ir_Reg(Name, new Pointer_Type(type));// SP
         if (CurrentBlock == null)// For global Initialization
             Init_Declare.add(new Global_Declare(tmpValue));
@@ -157,7 +170,8 @@ public class IRBuilder implements ASTVisitor {
         return tmpValue;
     }
 
-    public Ir_Value Get_Value(String Varname, Ir_Value this_value) {
+    public Ir_Value Get_Value(String Varname, Ir_Value this_value) {// ALERT:RETURN a Pointer to The Value with Name
+                                                                    // <Varname>
         // DEBUG("[asdsad]%s %s".formatted(Varname,this_value.To_String()));
         Ir_Value tmp = currentScope.Find_Value(Varname);
         assert (tmp.Type instanceof Pointer_Type);
@@ -168,11 +182,11 @@ public class IRBuilder implements ASTVisitor {
             Ir_IntConstant Offset = new Ir_IntConstant(this_type.Get_Offset(Varname));
             // ArrayList<Ir_Value> Offlist=new ArrayList<Ir_Value>();
             // Offlist.add(Offset);
-            Ir_Reg tmpvalue = new Ir_Reg(Find_Available_Name("%s.%s".formatted(this_value.Name, Varname), 0),
+            Ir_Reg tmpPointer = new Ir_Reg(Find_Available_Name("%s.%s".formatted(this_value.Name, Varname), 0),
                     ((Pointer_Type) tmp.Type));
-            GEP tmp_gep = new GEP(tmpvalue, this_value, Offset);
+            GEP tmp_gep = new GEP(tmpPointer, this_value, Offset, false);
             CurrentBlock.add_inst(tmp_gep);
-            return tmpvalue;
+            return tmpPointer;
         }
         return tmp;
     }
@@ -292,8 +306,8 @@ public class IRBuilder implements ASTVisitor {
         if (func.inClass != null)
             return ".func.%s.%s".formatted(func.inClass, func.Name);
         else {
-            if (func.Name.equals("main"))// SP
-                return "main";
+            if (func.Name.equals("main") || func.Name.equals("_malloc_toInt"))// SP
+                return func.Name;
             return ".func.%s".formatted(func.Name);
         }
     }
@@ -353,7 +367,7 @@ public class IRBuilder implements ASTVisitor {
                 Ir_Func tmpfunc = ((Ir_Func) GlobalScope.Var_Value.get(Funcname));
                 ArrayList<Ir_Value> paras = new ArrayList<>();
                 for (var each : tmpnode.paras) {
-                    //DEBUG(each.content);
+                    // DEBUG(each.content);
                     paras.add(new Ir_Reg(Find_Available_Name(each.Name, 0), To_Ir_Type(each.type)));
                 }
                 Init_Declare.add(new Declare_Func(tmpfunc, paras));
@@ -397,7 +411,6 @@ public class IRBuilder implements ASTVisitor {
             tmpnode.value.accept(this);
             Ir_Value tmpv = Get_Value(tmpnode.value);
             // DEBUG("[asdsasd]%s".formatted(tmpv.To_String()));
-
             Store_Value(tmpnode.Pointer, tmpv);
         }
         currentScope.Push_Value(tmpnode.Name, tmpnode.Pointer);
@@ -417,6 +430,8 @@ public class IRBuilder implements ASTVisitor {
         }
         for (var each : tmpnode.paras) {
             Ir_Value tmpreg = To_Ir_Reg(each.Name, each.type);
+            if (!(tmpreg.Type instanceof Int_Type))// Big Type should pass the pointer, not value
+                tmpreg.Type = new Pointer_Type(tmpreg.Type);
             paras.add(tmpreg);
             // tmpnode.scope.Push_Value(each.Name, tmpreg);
         }
@@ -463,6 +478,19 @@ public class IRBuilder implements ASTVisitor {
         if (tmpdef.inClass != null) {
             paras.add(tmpnode.name.Pointer);// must be lvalue
         }
+        if(tmpdef.Name.equals(".size"))//SP for .size()-> inline
+        {
+            Ir_Value tmpPos=Get_Middle(new Int_Type(32));
+            Ptrtoint tmpPTI=new Ptrtoint(tmpPos, tmpnode.name.Pointer);
+            CurrentBlock.add_inst(tmpPTI);
+            Ir_Value SubValue=Get_Middle(new Int_Type(32)),SubPos=Get_Middle(new Pointer_Type(new Int_Type(32)));
+            BinaryOp SubFour=new BinaryOp(SubValue, "-", tmpPos, new Ir_IntConstant(4));
+            CurrentBlock.add_inst(SubFour);
+            Inttoptr tmpITP=new Inttoptr(SubPos,SubValue);
+            CurrentBlock.add_inst(tmpITP);
+            tmpnode.Value=Get_Value(SubPos);
+            return;
+        }
         for (var each : tmpnode.ExprList) {
             each.accept(this);
             if (each.Pointer != null) {
@@ -476,13 +504,20 @@ public class IRBuilder implements ASTVisitor {
         }
         Call Call_Func;
         // System.out.println(tmpdef.type.type);
-        if (tmpnode.type.equals("void"))
+        if (tmpnode.type.equals("void")) {
             Call_Func = new Call(((Ir_Func) GlobalScope.Var_Value.get(Get_Func_Name(tmpdef))), paras);
-        else {
+            CurrentBlock.add_inst(Call_Func);
+        } else {
             tmpnode.Value = new Ir_Reg(Find_Available_Name(".Func_Return", 0), To_Ir_Type(tmpnode.type));
             Call_Func = new Call(tmpnode.Value, ((Ir_Func) GlobalScope.Var_Value.get(Get_Func_Name(tmpdef))), paras);
+            CurrentBlock.add_inst(Call_Func);
+            if (tmpnode.Value.Type instanceof Struct_Type) {
+                tmpnode.Pointer = Get_Middle(new Pointer_Type(tmpnode.Value.Type));
+                CurrentBlock.add_inst(new Alloca(tmpnode.Pointer));
+                CurrentBlock.add_inst(new Store(tmpnode.Pointer, tmpnode.Value));
+                tmpnode.Value = null;
+            }
         }
-        CurrentBlock.add_inst(Call_Func);
 
     };
 
@@ -495,16 +530,48 @@ public class IRBuilder implements ASTVisitor {
     public void visit(BoolNode tmpnode) {
         tmpnode.Value = new Ir_BoolConst(tmpnode.BoolValue);
     };
+
     @Override
     public void visit(StringNode tmpnode) {
-        int len=tmpnode.Content.size();
-        Ir_GlobalReg tmp = new Ir_GlobalReg(Find_Available_Name(".ConstantString", 0),new Pointer_Type(new Array_Type(len,new Int_Type())));
-        ArrayList<Ir_Value> Paras=new ArrayList<>();
-        for(var each:tmpnode.Content){
+        int len = tmpnode.Content.size();
+        Ir_GlobalReg tmp = new Ir_GlobalReg(Find_Available_Name(".ConstantString", 0),
+                new Pointer_Type(new Array_Type(len, new Int_Type(32))));
+        ArrayList<Ir_Value> Paras = new ArrayList<>();
+        for (var each : tmpnode.Content) {
             Paras.add(new Ir_IntConstant(each));
         }
-        Init_Declare.add(new Global_DeclareVar(tmp,Paras));
-        tmpnode.Pointer = tmp;
+        Init_Declare.add(new Global_DeclareVar(tmp, Paras));
+
+        /* To Load a const Array into tmpnode.Pointer as a string */
+        Struct_Type stringtype = (Struct_Type) Rename.get("string");
+        // DEBUG(stringtype.Get_Offset("len"));
+        tmpnode.Pointer = new Ir_Reg(Find_Available_Name(".TmpString", 0), new Pointer_Type(stringtype));
+        ArrayList<Ir_Value> Initlist = new ArrayList<>(), LenOffset = new ArrayList<>(),
+                ContentOffset = new ArrayList<>();
+        Initlist.add(tmpnode.Pointer);
+        CurrentBlock.add_inst(new Alloca(tmpnode.Pointer));
+        CurrentBlock.add_inst(new Call((Ir_Func) GlobalScope.Var_Value.get(".func.string.construct"), Initlist));// May
+                                                                                                                 // Not
+                                                                                                                 // Be
+                                                                                                                 // Neccessary
+        Ir_Reg tmplen = new Ir_Reg(Find_Available_Name(".TmpLen", 0), new Pointer_Type(new Int_Type(32)));
+        LenOffset.add(new Ir_IntConstant(stringtype.Get_Offset("len")));
+        CurrentBlock.add_inst(new GEP(tmplen, tmpnode.Pointer, LenOffset, false));
+        CurrentBlock.add_inst(new Store(tmplen, new Ir_IntConstant(len)));
+        Ir_Reg tmpcontent = new Ir_Reg(Find_Available_Name(".TmpContent", 0),
+                new Pointer_Type(new Pointer_Type(new Int_Type(32))));
+        // tmpcontent is a int**
+        ContentOffset.add(new Ir_IntConstant(stringtype.Get_Offset("content")));
+        CurrentBlock.add_inst(new GEP(tmpcontent, tmpnode.Pointer, ContentOffset, false));
+        Ir_Reg tmpConst = new Ir_Reg(Find_Available_Name(".TmpConstRef", 0),
+                new Pointer_Type(new Int_Type(32)));
+        CurrentBlock.add_inst(new GEP(tmpConst, tmp, new Ir_IntConstant(0), false));
+        CurrentBlock.add_inst(new Store(tmpcontent, tmpConst));
+        /*
+         * Code above is equavalent to:
+         * tmpnode.Pointer.len=len;
+         * tmpnode.Pointer.content=Const Array;
+         */
     };
 
     @Override
@@ -529,38 +596,104 @@ public class IRBuilder implements ASTVisitor {
     public void visit(ListSufNode tmpnode) {
         return;
     };
+
+    public Ir_Value Get_Const(Ir_GlobalReg GConst, Ir_Type type) {
+        Ir_Reg tmp = new Ir_Reg(Find_Available_Name(".middle", 0), type);
+        ArrayList<Ir_Value> Offset = new ArrayList<>();
+        // Offset.add(new Ir_IntConstant(0));
+        CurrentBlock.add_inst(new GEP(tmp, GConst, Offset, false));
+        return tmp;
+    }
+
+    public Ir_Value Get_Middle(Ir_Type type) {
+        return new Ir_Reg(Find_Available_Name(".middle", 0), type);
+    }
+
+    public Ir_Value To_IR_Array(ArrayList<Ir_Value> paras)// Assert to be int now
+    {
+        Ir_Reg tmp = new Ir_Reg(Find_Available_Name(".SizeList", 0),
+                new Pointer_Type(new Pointer_Type(new Int_Type(32)))),
+                middle_tmp = new Ir_Reg(Find_Available_Name(".middle", 0), new Pointer_Type(new Int_Type(32)));
+        Ir_Func call_malloc = (Ir_Func) GlobalScope.Var_Value.get("_malloc_toInt");
+        ArrayList<Ir_Value> Malloc_paras = new ArrayList<>();
+        Ir_Value para_size = Get_Middle(new Pointer_Type(new Int_Type(32)));
+        CurrentBlock.add_inst(new Alloca(para_size));
+        CurrentBlock.add_inst(new Store(para_size, new Ir_IntConstant(1)));
+        Malloc_paras.add(para_size);
+        Malloc_paras.add(new Ir_IntConstant(1));
+        CurrentBlock.add_inst(new Call(middle_tmp, call_malloc, Malloc_paras));
+        CurrentBlock.add_inst(new Bitcast(tmp, middle_tmp));
+        Ir_Value tmpvalue = Get_Value(tmp);
+        for (int i = 0; i < paras.size(); ++i) {
+            Ir_Value tmp_para = paras.get(i);// Must visited before
+            Ir_Value ArrayIdx = new Ir_Reg(Find_Available_Name(".ArrayIdx", 0), ((Pointer_Type) tmp.Type).To_Type);
+            CurrentBlock.add_inst(new GEP(ArrayIdx, tmpvalue, new Ir_IntConstant(i), true));
+            CurrentBlock.add_inst(new Store(ArrayIdx, tmp_para));
+        }
+        CurrentBlock.add_inst(new Store(tmp, tmpvalue));
+        return tmp;
+    }
+
     @Override
     public void visit(VarNode tmpnode) {
         // currentScope.print();
         if (tmpnode.name.equals(".new"))// SP for form: new int[x][x]
         {
-            ArrayList<Ir_Value> paras = new ArrayList<>();
-            for (var each : tmpnode.SizeList) {
-                each.accept(this);
-                paras.add(Get_Value(each));
+            if (tmpnode.SizeList.size() > 0) {
+                ArrayList<Ir_Value> paras = new ArrayList<>();
+                for (var each : tmpnode.SizeList) {
+                    // DEBUG("[%s]%s".formatted(tmpnode.name, each.content));
+                    each.accept(this);
+                    paras.add(Get_Value(each));
+                }
+                Ir_Value SizePtr = To_IR_Array(paras);
+                ArrayList<Ir_Value> Malloc_paras = new ArrayList<>();
+                Malloc_paras.add(Get_Value(SizePtr));
+                Malloc_paras.add(new Ir_IntConstant(paras.size()));
+                Ir_Func call_malloc = (Ir_Func) GlobalScope.Var_Value.get("_malloc_toInt");
+                Ir_Value tmp_middle = Get_Middle(new Pointer_Type(new Int_Type(32)));
+                CurrentBlock.add_inst(new Call(tmp_middle, call_malloc, Malloc_paras));
+                tmpnode.Value = new Ir_Reg(Find_Available_Name(tmpnode.name, 0),
+                        To_Ir_Type(tmpnode.type));
+                CurrentBlock.add_inst(new Bitcast(tmpnode.Value, tmp_middle));
+            } else {
+                if (tmpnode.type.type.equals("int")) {
+                    tmpnode.Value = new Ir_IntConstant(0);
+                } else if (tmpnode.type.type.equals("bool")) {
+                    tmpnode.Value = new Ir_BoolConst(false);
+                } else {
+                    tmpnode.Pointer = Get_Middle(new Pointer_Type(To_Ir_Type(tmpnode.type)));
+                    CurrentBlock.add_inst(new Alloca(tmpnode.Pointer));
+                    Ir_Func func = (Ir_Func) GlobalScope.Var_Value
+                            .get(".func.%s.construct".formatted(tmpnode.type.type));
+                    CurrentBlock.add_inst(new Call(func, tmpnode.Pointer));
+                }
             }
-            Ir_Func call_malloc = new Ir_Func(".func._malloc", new Pointer_Type(new Int_Type(8)));
-            tmpnode.Pointer = new Ir_Reg(Find_Available_Name(".new.middle", 0), new Pointer_Type(new Int_Type(8)));
-            CurrentBlock.add_inst(new Call(tmpnode.Pointer, call_malloc, paras));
             return;
         }
-        tmpnode.Pointer = Get_Value(tmpnode.isfunc ? Get_Func_Name(tmpnode.isFuncNode) : tmpnode.name,
-                CurrentFunc.Get_This());
+        if (tmpnode.isfunc) {
+            tmpnode.Pointer = CurrentFunc.Get_This();
+        } else
+            tmpnode.Pointer = Get_Value(tmpnode.name,
+                    CurrentFunc.Get_This());
+        assert (tmpnode.Value == null);
         // DEBUG("[VAr to str]%s".formatted(tmpnode.name));
     };
 
     @Override
     public void visit(IndexNode tmpnode) {
-        //DEBUG(tmpnode.content);
+        // DEBUG(tmpnode.content);
         tmpnode.belongs.accept(this);
-        ArrayList<Ir_Value> Offset=new ArrayList<>();
+        Ir_Value Pre = Get_Value(tmpnode.belongs);
+        Ir_Reg tmp = null;
         for (var each : tmpnode.IndexList) {
             each.accept(this);
-            Offset.add(Get_Value(each));
+            tmp = new Ir_Reg(Find_Available_Name(".middle", 0), ((Pointer_Type) Pre.Type));
+            GEP tmpGep = new GEP(tmp, Pre, Get_Value(each), true);
+            CurrentBlock.add_inst(tmpGep);
+            Pre = Get_Value(tmp);
         }
-        tmpnode.Pointer = new Ir_Reg(Find_Available_Name(".middle", 0),new Pointer_Type(To_Ir_Type(tmpnode.type)));
-        GEP tmp_GEP=new GEP(tmpnode.Pointer,tmpnode.belongs.Pointer,Offset);
-        CurrentBlock.add_inst(tmp_GEP);
+        tmpnode.Pointer = tmp;
         return;
     };
 
@@ -574,19 +707,19 @@ public class IRBuilder implements ASTVisitor {
         tmpnode.belongs.accept(this);
         if (tmpnode.isfunc) {
             // Call Member_Call=new Call(null, null);
-            tmpnode.Pointer = tmpnode.belongs.Pointer;//Store This in tmpnode
+            tmpnode.Pointer = tmpnode.belongs.Pointer;// Store This in tmpnode
         } else {
             assert (tmpnode.belongs.Pointer.Type instanceof Pointer_Type);
             Struct_Type TmpType = (Struct_Type) ((Pointer_Type) tmpnode.belongs.Pointer.Type).To_Type;
             Ir_IntConstant offset = new Ir_IntConstant(TmpType.Get_Offset(tmpnode.name));
             tmpnode.Pointer = new Ir_Reg(Find_Available_Name(".middle", 0), new Pointer_Type(To_Ir_Type(tmpnode.type)));
-            GEP tmp_GEP = new GEP(tmpnode.Pointer, tmpnode.belongs.Pointer, offset);
+            GEP tmp_GEP = new GEP(tmpnode.Pointer, tmpnode.belongs.Pointer, offset, false);
             CurrentBlock.add_inst(tmp_GEP);
         }
     };
 
     @Override
-    public void visit(BinaryexprNode tmpnode) {//TODO
+    public void visit(BinaryexprNode tmpnode) {// TODO
         tmpnode.lv.accept(this);
         tmpnode.rv.accept(this);
         tmpnode.Value = new Ir_Reg(Find_Available_Name(".middle", 0), To_Ir_Type(tmpnode.type));
@@ -596,25 +729,33 @@ public class IRBuilder implements ASTVisitor {
             Store_Value(tmpnode.lv.Pointer, tmpv);
             return;
         }
-        if(tmpnode.lv.type.equals("string"))
-        {
-            ArrayList<Ir_Value> LVparas=new ArrayList<>();
-            LVparas.add(Get_Value(tmpnode.lv));
-            LVparas.add(Get_Value(tmpnode.rv));
-            if(tmpnode.op.equals("+"))
-            {
-                Ir_Func Add_func=(Ir_Func)GlobalScope.Var_Value.get(".func.Add_String_Together_No_Collision_Please");
-                CurrentBlock.add_inst(new Call(tmpnode.Value,Add_func, LVparas));
+        if (tmpnode.lv.type.type.equals("string")) {// ALERT: All String should be Left Value
+            ArrayList<Ir_Value> LVparas = new ArrayList<>();
+            assert (tmpnode.lv.Pointer != null);
+            assert (tmpnode.rv.Pointer != null);
+            LVparas.add(tmpnode.lv.Pointer);
+            LVparas.add(tmpnode.rv.Pointer);
+            if (tmpnode.op.equals("+")) {
+                Ir_Func Add_func = (Ir_Func) GlobalScope.Var_Value.get(".func.Add_String_Together_No_Collision_Please");
+                tmpnode.Pointer = Get_Middle(new Pointer_Type(To_Ir_Type(tmpnode.type)));// SP for string+string:should
+                                                                                         // be left value
+                CurrentBlock.add_inst(new Alloca(tmpnode.Pointer));
+                CurrentBlock.add_inst(new Call(tmpnode.Value, Add_func, LVparas));
+                Store_Value(tmpnode.Pointer, tmpnode.Value);
+                tmpnode.Value = null;
+                return;
+            } else if (tmpnode.op.equals("==")) {
+                Ir_Func Equal_func = (Ir_Func) GlobalScope.Var_Value
+                        .get(".func.Equal_String_Together_No_Collision_Please");
+                CurrentBlock.add_inst(new Call(tmpnode.Value, Equal_func, LVparas));
+                return;
+            } else if (tmpnode.op.equals("!=")) {
+                Ir_Func Equal_func = (Ir_Func) GlobalScope.Var_Value
+                        .get(".func.Not_Equal_String_Together_No_Collision_Please");
+                CurrentBlock.add_inst(new Call(tmpnode.Value, Equal_func, LVparas));
+                return;
             }
-            else if(tmpnode.op.equals("=="))
-            {
-                Ir_Func Equal_func=(Ir_Func)GlobalScope.Var_Value.get(".func.Equal_String_Together_No_Collision_Please");
-                CurrentBlock.add_inst(new Call(tmpnode.Value,Equal_func, LVparas));
-            } else if(tmpnode.op.equals("!="))
-            {
-                Ir_Func Equal_func=(Ir_Func)GlobalScope.Var_Value.get(".func.Not_Equal_String_Together_No_Collision_Please");
-                CurrentBlock.add_inst(new Call(tmpnode.Value,Equal_func, LVparas));
-            }
+
         }
         BinaryOp tmp_OP = new BinaryOp(tmpnode.Value, tmpnode.op, Get_Value(tmpnode.lv), Get_Value(tmpnode.rv));
         CurrentBlock.add_inst(tmp_OP);
@@ -648,33 +789,39 @@ public class IRBuilder implements ASTVisitor {
 
     @Override
     public void visit(PreexprNode tmpnode) {
+        // DEBUG(tmpnode.content);
         tmpnode.rv.accept(this);
         Ir_IntConstant tmp = new Ir_IntConstant(1);
-        Ir_Value tmpvalue;
+        Ir_Value tmpvalue, mid_tmp;
         switch (tmpnode.op) {
             case "++":
                 assert (tmpnode.rv.Pointer != null);
                 tmpvalue = Get_Value(tmpnode.rv);// Load i from tmpnode.rv.Pointer
-                CurrentBlock.add_inst(new BinaryOp(tmpvalue, "+", tmpvalue, tmp));// i=i+1
-                Store_Value(tmpnode.rv.Pointer, tmpvalue);// Store back to Pointer
+                mid_tmp = Get_Middle(tmpvalue.Type);
+                CurrentBlock.add_inst(new BinaryOp(mid_tmp, "+", tmpvalue, tmp));// i=i+1
+                Store_Value(tmpnode.rv.Pointer, mid_tmp);// Store back to Pointer
                 tmpnode.Pointer = tmpnode.rv.Pointer;
                 break;
             case "--":
                 assert (tmpnode.rv.Pointer != null);
                 tmpvalue = Get_Value(tmpnode.rv);// Load i from tmpnode.rv.Pointer
-                CurrentBlock.add_inst(new BinaryOp(tmpvalue, "-", tmpvalue, tmp));// i=i+1
-                Store_Value(tmpnode.rv.Pointer, tmpvalue);// Store back to Pointer
+                mid_tmp = Get_Middle(tmpvalue.Type);
+                CurrentBlock.add_inst(new BinaryOp(mid_tmp, "-", tmpvalue, tmp));// i=i+1
+                Store_Value(tmpnode.rv.Pointer, mid_tmp);// Store back to Pointer
                 tmpnode.Pointer = tmpnode.rv.Pointer;
                 break;
             case "!":
-                tmpnode.Value = new Ir_Reg(".middle", To_Ir_Type(tmpnode.type));
+                tmpnode.Value = new Ir_Reg(Find_Available_Name(".middle", 0), To_Ir_Type(tmpnode.type));
                 CurrentBlock.add_inst(new BinaryOp(tmpnode.Value, "^", Get_Value(tmpnode.rv), new Ir_BoolConst(true)));
+                break;
             case "~":
-                tmpnode.Value = new Ir_Reg(".middle", To_Ir_Type(tmpnode.type));
+                tmpnode.Value = new Ir_Reg(Find_Available_Name(".middle", 0), To_Ir_Type(tmpnode.type));
                 CurrentBlock.add_inst(new BinaryOp(tmpnode.Value, "^", Get_Value(tmpnode.rv), new Ir_IntConstant(1)));
+                break;
             case "-":
-                tmpnode.Value = new Ir_Reg(".middle", To_Ir_Type(tmpnode.type));
+                tmpnode.Value = new Ir_Reg(Find_Available_Name(".middle", 0), To_Ir_Type(tmpnode.type));
                 CurrentBlock.add_inst(new BinaryOp(tmpnode.Value, "-", new Ir_IntConstant(0), Get_Value(tmpnode.rv)));
+                break;
         }
     };
 
@@ -776,7 +923,7 @@ public class IRBuilder implements ASTVisitor {
 
     @Override
     public void visit(WhilestmtNode tmpnode) {
-        
+
         BasicBlock While_Condition = new BasicBlock(CurrentFunc, "While_Cond");
         BasicBlock While_Body = new BasicBlock(CurrentFunc, "While_Body");
         BasicBlock While_End = new BasicBlock(CurrentFunc, "While_End");
@@ -785,12 +932,12 @@ public class IRBuilder implements ASTVisitor {
         CurrentFunc.Add_Block(While_Condition);
         CurrentBlock.end_block_with(new Uncond_Br(While_Condition));
         CurrentBlock = While_Condition;
-        
+
         tmpnode.End.accept(this);
         CurrentBlock.end_block_with(new Br(Get_Value(tmpnode.End), While_Body, While_End));
-        //System.out.println("[asdas] %s".formatted(CurrentBlock.To_String()));
+        // System.out.println("[asdas] %s".formatted(CurrentBlock.To_String()));
         CurrentFunc.Add_Block(While_Body);
-        CurrentBlock=While_Body;
+        CurrentBlock = While_Body;
         tmpnode.suite.accept(this);
         if (CurrentBlock.Ret_inst == null)
             CurrentBlock.end_block_with(new Uncond_Br(While_End));
