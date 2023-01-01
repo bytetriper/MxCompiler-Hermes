@@ -600,7 +600,7 @@ public class astbuilder extends MxBaseVisitor<AstNode>  {
 		{
 			StringNode node=new StringNode();
 			if(Fetch_all)node.content=ctx.getText();
-			node.Content=To_ASCII(ctx.ConstString().getText());
+			node.Content=To_ASCII(ctx.ConstString().getText().substring(1,ctx.ConstString().getText().length()-1));
 			return node;
 		}
 		if(ctx.Integer()!=null)

@@ -52,12 +52,13 @@ public class Compiler {
         string Add_String_Together_No_Collision_Please(string a,string b)
         {
             string tmp=new string();
-            int tmplen=a.len+b.len,alen=a.len;
+            int tmplen=a.len+b.len,alen=a.len,blen=b.len;
+            //printInt(tmplen);
             tmp.len=tmplen;
-            tmp.content=new int [tmp.len];
+            tmp.content=new int [tmplen];
             for(int i=0;i<alen;++i)
                 tmp.content[i]=a.content[i];
-            for(int i=0;i<b.len;++i)
+            for(int i=0;i<blen;++i)
                 tmp.content[i+alen]=b.content[i];
             return tmp;
         }
@@ -113,7 +114,7 @@ public class Compiler {
         {
             int s=str.len;
             for(int i=0;i<s;i++)
-            printf_no_collision_please(str.content[i]);
+                printf_no_collision_please(str.content[i]);
             return;
         }
         void println(string str)
@@ -122,22 +123,41 @@ public class Compiler {
             printf_no_collision_please(10);
             return;
         }
-        void printInt(int num)
-        {
-            printf_no_collision_please(num+48);
-            return;
-        }
         void printlnInt(int num)
         {
-            printf_no_collision_please(num+48);
+            printInt(num);
             printf_no_collision_please(10);
             return;
         }
         string toString(int i){
+            int []a=new  int [20];//log(i)<20;
+            int cnt=0;
+            bool fg=false;
+            if(i==0)
+            {
+                cnt=1;
+                a[0]=0;
+            }
+            if(i<0){
+                fg=true;
+                i=-i;
+            }
+            while(i!=0){
+                a[cnt]=i%10;
+                i=i/10;
+                ++cnt;
+            }
+            if(fg){
+                a[cnt]=-3;
+                ++cnt;
+            }
             string tmp=new string();
-            tmp.len=1;
-            tmp.content=new int [1];
-            tmp.content[0]=i+48;
+            tmp.len=cnt;
+            tmp.content=new int [cnt];
+            for(int i=0;i<cnt;++i)
+            {
+                tmp.content[i]=a[cnt-i-1]+48;
+            }
             return tmp;
         }
         string getString(){
@@ -145,11 +165,15 @@ public class Compiler {
             int [] a=new int [300];
             int cnt=0;
             while(true){
-                int c=getInt()+48;
+                int c=scanf_no_collision_please();
                 if((c>47&&c<58)||(c>64&&c<91)||(c>96&&c<123))
+                {    
                     a[cnt]=c;
+                }
                 else
+                {    
                     break;
+                }
                 cnt++;
             }
             tmp.len=cnt;
@@ -159,7 +183,7 @@ public class Compiler {
                 tmp.content[i]=a[i];
             }
             return tmp;
-        }
+        }        
     """;
     static public String Format_Prefix="""
     source_filename = \"test.cpp\"

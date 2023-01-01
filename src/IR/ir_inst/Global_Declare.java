@@ -24,7 +24,7 @@ public class Global_Declare extends Ir_Inst {
         }
         else if(((Pointer_Type)user.Type).To_Type instanceof Bool_Type)
         {
-            Operands.add(new Ir_BoolConst(true));
+            Operands.add(new Ir_BoolConst(false));
         }
 
     }

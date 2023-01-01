@@ -12,7 +12,7 @@ for path,pname,file in os.walk(r'../Compiler-2021-testcases/codegen'):#testcaseç
         print(f"Testing {name}")
         with open(name,'r',encoding='utf8') as p:
             content=p.read()
-        ret=subprocess.run('java Compiler {} p >testcases/test.ll'.format(name),shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=10)
+        ret=subprocess.run('./RR {}'.format(name),shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=10)
         if ret.stderr:
             print("CodeGen Error")
         else:

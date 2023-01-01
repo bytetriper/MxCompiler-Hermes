@@ -1,0 +1,3 @@
+#!/bin/bash
+clang -S -emit-llvm -fno-discard-value-names --target=riscv32 -march=rv32gc -O0 test.cpp
+llc --march=riscv32 test.ll

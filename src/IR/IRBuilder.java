@@ -192,7 +192,9 @@ public class IRBuilder implements ASTVisitor {
     }
 
     public void Init_Global_Variables() {
-        CurrentFunc = new FuncBlock(new Ir_Func(".init", new Void_Type()), new ArrayList<>(), GlobalScope);
+        Ir_Func INIT_FUNC=new Ir_Func(".init", new Void_Type());
+        GlobalScope.Var_Value.put(".init", INIT_FUNC);
+        CurrentFunc = new FuncBlock(INIT_FUNC, new ArrayList<>(), GlobalScope);
         Blocks.add(CurrentFunc);
         New_Block();
         for (var each : GlobalScope.Varmember.keySet()) {
@@ -306,7 +308,9 @@ public class IRBuilder implements ASTVisitor {
         if (func.inClass != null)
             return ".func.%s.%s".formatted(func.inClass, func.Name);
         else {
-            if (func.Name.equals("main") || func.Name.equals("_malloc_toInt"))// SP
+            if (func.Name.equals("main") || func.Name.equals("_malloc_toInt")
+                    || func.Name.equals("printf_no_collision_please") || func.Name.equals("scanf_no_collision_please")
+                    || func.Name.equals("printInt") || func.Name.equals("_malloc") || func.Name.equals("getInt"))// SP
                 return func.Name;
             return ".func.%s".formatted(func.Name);
         }
@@ -411,6 +415,9 @@ public class IRBuilder implements ASTVisitor {
             tmpnode.value.accept(this);
             Ir_Value tmpv = Get_Value(tmpnode.value);
             // DEBUG("[asdsasd]%s".formatted(tmpv.To_String()));
+            if (tmpv instanceof Ir_NullPtrConstant) {
+                tmpv.Type = To_Ir_Type(tmpnode.type);
+            }
             Store_Value(tmpnode.Pointer, tmpv);
         }
         currentScope.Push_Value(tmpnode.Name, tmpnode.Pointer);
@@ -444,6 +451,8 @@ public class IRBuilder implements ASTVisitor {
         New_Block();
         currentScope = tmpnode.scope;
         // DEBUG(currentScope.faScope.toString());
+        if(tmpnode.Name.equals("main"))
+            CurrentBlock.add_inst(new Call((Ir_Func)GlobalScope.Var_Value.get(".init"),new ArrayList<>()));
         for (var each : tmpnode.suite.StmtList) {
             each.accept(this);
         }
@@ -478,17 +487,17 @@ public class IRBuilder implements ASTVisitor {
         if (tmpdef.inClass != null) {
             paras.add(tmpnode.name.Pointer);// must be lvalue
         }
-        if(tmpdef.Name.equals(".size"))//SP for .size()-> inline
+        if (tmpdef.Name.equals(".size"))// SP for .size()-> inline
         {
-            Ir_Value tmpPos=Get_Middle(new Int_Type(32));
-            Ptrtoint tmpPTI=new Ptrtoint(tmpPos, tmpnode.name.Pointer);
+            Ir_Value tmpPos = Get_Middle(new Int_Type(32));
+            Ptrtoint tmpPTI = new Ptrtoint(tmpPos, tmpnode.name.Pointer);
             CurrentBlock.add_inst(tmpPTI);
-            Ir_Value SubValue=Get_Middle(new Int_Type(32)),SubPos=Get_Middle(new Pointer_Type(new Int_Type(32)));
-            BinaryOp SubFour=new BinaryOp(SubValue, "-", tmpPos, new Ir_IntConstant(4));
+            Ir_Value SubValue = Get_Middle(new Int_Type(32)), SubPos = Get_Middle(new Pointer_Type(new Int_Type(32)));
+            BinaryOp SubFour = new BinaryOp(SubValue, "-", tmpPos, new Ir_IntConstant(4));
             CurrentBlock.add_inst(SubFour);
-            Inttoptr tmpITP=new Inttoptr(SubPos,SubValue);
+            Inttoptr tmpITP = new Inttoptr(SubPos, SubValue);
             CurrentBlock.add_inst(tmpITP);
-            tmpnode.Value=Get_Value(SubPos);
+            tmpnode.Value = Get_Value(SubPos);
             return;
         }
         for (var each : tmpnode.ExprList) {
@@ -612,25 +621,16 @@ public class IRBuilder implements ASTVisitor {
     public Ir_Value To_IR_Array(ArrayList<Ir_Value> paras)// Assert to be int now
     {
         Ir_Reg tmp = new Ir_Reg(Find_Available_Name(".SizeList", 0),
-                new Pointer_Type(new Pointer_Type(new Int_Type(32)))),
-                middle_tmp = new Ir_Reg(Find_Available_Name(".middle", 0), new Pointer_Type(new Int_Type(32)));
-        Ir_Func call_malloc = (Ir_Func) GlobalScope.Var_Value.get("_malloc_toInt");
-        ArrayList<Ir_Value> Malloc_paras = new ArrayList<>();
-        Ir_Value para_size = Get_Middle(new Pointer_Type(new Int_Type(32)));
-        CurrentBlock.add_inst(new Alloca(para_size));
-        CurrentBlock.add_inst(new Store(para_size, new Ir_IntConstant(1)));
-        Malloc_paras.add(para_size);
-        Malloc_paras.add(new Ir_IntConstant(1));
-        CurrentBlock.add_inst(new Call(middle_tmp, call_malloc, Malloc_paras));
-        CurrentBlock.add_inst(new Bitcast(tmp, middle_tmp));
-        Ir_Value tmpvalue = Get_Value(tmp);
+                new Pointer_Type(new Int_Type(32)));
+        Ir_Func call_malloc = (Ir_Func) GlobalScope.Var_Value.get("_malloc");
+        CurrentBlock.add_inst(new Call(tmp, call_malloc, new Ir_IntConstant(paras.size())));
         for (int i = 0; i < paras.size(); ++i) {
             Ir_Value tmp_para = paras.get(i);// Must visited before
-            Ir_Value ArrayIdx = new Ir_Reg(Find_Available_Name(".ArrayIdx", 0), ((Pointer_Type) tmp.Type).To_Type);
-            CurrentBlock.add_inst(new GEP(ArrayIdx, tmpvalue, new Ir_IntConstant(i), true));
+            Ir_Value ArrayIdx = new Ir_Reg(Find_Available_Name(".ArrayIdx", 0), tmp.Type);
+            CurrentBlock.add_inst(new GEP(ArrayIdx, tmp, new Ir_IntConstant(i), true));
             CurrentBlock.add_inst(new Store(ArrayIdx, tmp_para));
         }
-        CurrentBlock.add_inst(new Store(tmp, tmpvalue));
+        // CurrentBlock.add_inst(new Store(tmp, tmpvalue));
         return tmp;
     }
 
@@ -648,7 +648,7 @@ public class IRBuilder implements ASTVisitor {
                 }
                 Ir_Value SizePtr = To_IR_Array(paras);
                 ArrayList<Ir_Value> Malloc_paras = new ArrayList<>();
-                Malloc_paras.add(Get_Value(SizePtr));
+                Malloc_paras.add(SizePtr);
                 Malloc_paras.add(new Ir_IntConstant(paras.size()));
                 Ir_Func call_malloc = (Ir_Func) GlobalScope.Var_Value.get("_malloc_toInt");
                 Ir_Value tmp_middle = Get_Middle(new Pointer_Type(new Int_Type(32)));
@@ -726,6 +726,10 @@ public class IRBuilder implements ASTVisitor {
         if (tmpnode.op.equals("="))// SP for Assign
         {
             Ir_Value tmpv = Get_Value(tmpnode.rv);
+            if (tmpv instanceof Ir_NullPtrConstant) {
+                tmpv.Type = ((Pointer_Type) tmpnode.lv.Pointer.Type).To_Type;// TODO RISKY!!!!!! DEEP COPY should
+                                                                             // replace it
+            }
             Store_Value(tmpnode.lv.Pointer, tmpv);
             return;
         }
@@ -755,9 +759,15 @@ public class IRBuilder implements ASTVisitor {
                 CurrentBlock.add_inst(new Call(tmpnode.Value, Equal_func, LVparas));
                 return;
             }
-
         }
-        BinaryOp tmp_OP = new BinaryOp(tmpnode.Value, tmpnode.op, Get_Value(tmpnode.lv), Get_Value(tmpnode.rv));
+        Ir_Value tmpvl = Get_Value(tmpnode.lv), tmpvr = Get_Value(tmpnode.rv);
+        if (tmpvl instanceof Ir_NullPtrConstant) {
+            tmpvl.Type = tmpvr.Type;
+        }
+        if (tmpvr instanceof Ir_NullPtrConstant) {
+            tmpvr.Type = tmpvl.Type;
+        }
+        BinaryOp tmp_OP = new BinaryOp(tmpnode.Value, tmpnode.op, tmpvl, tmpvr);
         CurrentBlock.add_inst(tmp_OP);
     };
 
@@ -913,8 +923,8 @@ public class IRBuilder implements ASTVisitor {
         CurrentBlock.end_block_with(new Br(tmpnode.End.Value, For_Body, For_End));
         CurrentFunc.Add_Block(For_Body);
         CurrentBlock = For_Body;
-        tmpnode.Change.accept(this);
         tmpnode.suite.accept(this);
+        tmpnode.Change.accept(this);
         if (CurrentBlock.Ret_inst == null)
             CurrentBlock.end_block_with(new Uncond_Br(For_Condition));
         CurrentFunc.Add_Block(For_End);
@@ -940,7 +950,7 @@ public class IRBuilder implements ASTVisitor {
         CurrentBlock = While_Body;
         tmpnode.suite.accept(this);
         if (CurrentBlock.Ret_inst == null)
-            CurrentBlock.end_block_with(new Uncond_Br(While_End));
+            CurrentBlock.end_block_with(new Uncond_Br(While_Condition));//jump back to Head
         CurrentFunc.Add_Block(While_End);
         CurrentBlock = While_End;
 

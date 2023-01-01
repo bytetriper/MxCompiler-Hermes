@@ -1,0 +1,5 @@
+#!/bin/bash
+clang -S -emit-llvm -fno-discard-value-names -m32 -O2 lib/builtin.c -o lib/builtin.ll
+java Compiler "$1" p >testspace/test.ll
+clang -m32 lib/builtin.ll testspace/test.ll -o testspace/test.out
+./testspace/test.out
