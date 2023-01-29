@@ -217,6 +217,7 @@ public class IRBuilder implements ASTVisitor {
         Ir_Func INIT_FUNC = new Ir_Func(".init", new Void_Type());
         GlobalScope.Var_Value.put(".init", INIT_FUNC);
         CurrentFunc = new FuncBlock(INIT_FUNC, new ArrayList<>(), GlobalScope);
+        
         Blocks.add(CurrentFunc);
         New_Block();
         for (var each : GlobalScope.Varmember.keySet()) {
@@ -395,6 +396,7 @@ public class IRBuilder implements ASTVisitor {
         Names = new HashSet<>();
         Func_Defed = new HashSet<>();
         GlobalScope = root.GlobalScope;
+        currentScope=GlobalScope;
         Init();
     }
 
