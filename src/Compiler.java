@@ -193,11 +193,11 @@ public class Compiler {
             result=prefix+result;
         //MxLexer lexer=new MxLexer(CharStreams.fromStream((input)));
         MxLexer lexer=new MxLexer(CharStreams.fromString(result));
-        //lexer.removeErrorListeners();
-        //lexer.addErrorListener(new MxErrorHandler());
+        lexer.removeErrorListeners();
+        lexer.addErrorListener(new MxErrorHandler());
         MxParser parser=new MxParser(new CommonTokenStream(lexer));
-        //parser.removeErrorListeners();
-        //parser.addErrorListener(new MxErrorHandler());
+        parser.removeErrorListeners();
+        parser.addErrorListener(new MxErrorHandler());
         //parser.addErrorListener();
         ParseTree root=parser.program();
         //System.out.println(root.toStringTree(parser));
