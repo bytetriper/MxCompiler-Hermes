@@ -7,7 +7,7 @@ import IR.ir_type.Label_Type;
 import IR.ir_value.Ir_Value;
 import utils.FUCKER;
 import utils.Init_Warning;
-
+import IR.IRVisitor;
 public class Br extends Ir_Inst{
     public Br(){
         new Init_Warning("Br_Inst");
@@ -24,6 +24,10 @@ public class Br extends Ir_Inst{
             new FUCKER("[fatal error]:At Br (user:{}) Label2 not Label type,but instead {} ".formatted(User.Name,Label2.Type.To_String()));    
         Operands.add(Label1);
         Operands.add(Label2);
+    }
+    @Override
+    public void accept(IRVisitor visitor){
+        visitor.visit(this);
     }
     @Override
     public String To_String(){

@@ -9,9 +9,10 @@ import IR.ir_type.Pointer_Type;
 import IR.ir_type.Struct_Type;
 import IR.ir_value.Ir_Value;
 import utils.Init_Warning;
+import IR.IRVisitor;
 
 public class GEP extends Ir_Inst{
-    boolean indexing;
+    public boolean indexing=false;
     public GEP(){
         new Init_Warning("GEP_Inst");
     }
@@ -48,6 +49,10 @@ public class GEP extends Ir_Inst{
         indexing=index;
     }
     @Override
+    public void accept(IRVisitor visitor){
+        visitor.visit(this);
+    }
+    @Override
     public String To_String(){
         //(for struct)<user name> = getelementptr <Target Type.To_type>,<Target Type=Pointer Type> <Target name>,i32 0,<offset type> <offset val>
         //                                                                                 To get Value from Struct
@@ -64,6 +69,7 @@ public class GEP extends Ir_Inst{
                 str+=",";
         }
         Ir_Value Target=Operands.get(0);
+        //System.out.println(Target.Type.To_String());
         if(!indexing)
             return "%s = getelementptr %s,%s %s,i32 0,%s".formatted(User.To_String(),((Pointer_Type)Target.Type).To_Type.To_String(),Target.Type.To_String(),Target.To_String(),str);
         else

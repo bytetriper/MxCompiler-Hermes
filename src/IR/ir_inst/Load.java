@@ -5,18 +5,24 @@ import IR.ir_type.*;
 import IR.ir_value.Ir_Value;
 import utils.FUCKER;
 import utils.Init_Warning;
+import IR.IRVisitor;
+
 public class Load extends Ir_Inst {
     public Load(){
         new Init_Warning("Load_Inst");
         User=null;
     }
-    public Load(Ir_Value user,Ir_Value Store){
+    public Load(Ir_Value user,Ir_Value load){
         super();
-        if(!(Store.Type instanceof Pointer_Type))
+        if(!(load.Type instanceof Pointer_Type))
             new FUCKER("[Fatal Error]:Not loading from a pointer");
         User=user;
         Operands=new ArrayList<>();
-        Operands.add(Store);
+        Operands.add(load);
+    }
+    @Override
+    public void accept(IRVisitor visitor){
+        visitor.visit(this);
     }
     @Override
     public String To_String(){

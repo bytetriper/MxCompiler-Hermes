@@ -7,9 +7,10 @@ import IR.ir_type.Void_Type;
 import IR.ir_value.Ir_Func;
 import IR.ir_value.Ir_Value;
 import utils.Init_Warning;
+import IR.IRVisitor;
 
 public class Call extends Ir_Inst {
-    Ir_Value Func;
+    public Ir_Value Func;
 
     public Call() {
         new Init_Warning("Call_Inst");
@@ -43,6 +44,10 @@ public class Call extends Ir_Inst {
         Operands = new ArrayList<>();
         Func = func;
         Operands.add(paras);
+     }
+    @Override
+    public void accept(IRVisitor visitor){
+        visitor.visit(this);
     }
     @Override
     public String To_String() {

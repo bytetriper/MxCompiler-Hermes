@@ -13,7 +13,7 @@ public class Ir_BoolConst extends Ir_Value {
     public Ir_BoolConst(Boolean value)
     {
         val=value;
-        Type=new Int_Type(1);
+        Type=new Int_Type(1,true);
     }
     @Override
     public int get_size(){

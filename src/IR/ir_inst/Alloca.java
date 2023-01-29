@@ -1,5 +1,6 @@
 package IR.ir_inst;
 
+import IR.IRVisitor;
 import IR.ir_type.Pointer_Type;
 import IR.ir_value.Ir_Value;
 
@@ -17,5 +18,9 @@ public class Alloca extends Ir_Inst{
     @Override
     public String To_String(){
         return "%s=alloca %s".formatted(User.To_String(),((Pointer_Type)User.Type).To_Type.To_String());
+    }
+    @Override
+    public void accept(IRVisitor visitor){
+        visitor.visit(this);
     }
 }

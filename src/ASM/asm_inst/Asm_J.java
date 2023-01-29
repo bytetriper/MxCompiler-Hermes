@@ -12,6 +12,9 @@ public class Asm_J extends Asm_Inst {
     @Override
     public String To_String(){
         //j <blk name>
-        return "j %s".formatted(((Asm_BasicBlock)Rd).Name);
+        String str="";
+        if(OriginalInst!=null)
+            str="\n\t#%s".formatted(OriginalInst.To_String());
+        return "j %s".formatted(((Asm_BasicBlock)Rd).Name)+str;
     }
 }

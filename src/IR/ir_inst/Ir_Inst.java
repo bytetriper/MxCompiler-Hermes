@@ -10,4 +10,5 @@ public abstract class Ir_Inst {
     public Ir_Value User;
     public ArrayList<Ir_Value> Operands;
     abstract public String To_String();
+    abstract public void accept(IRVisitor visitor);
 }

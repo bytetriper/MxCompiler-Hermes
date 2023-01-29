@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import IR.ir_value.Ir_Value;
 import utils.Init_Warning;
+import IR.IRVisitor;
 
 public class Zext extends Ir_Inst {
     public Zext(){
@@ -13,6 +14,10 @@ public class Zext extends Ir_Inst {
         User=user;
         Operands=new ArrayList<>();
         Operands.add(Zextee);
+    }
+    @Override
+    public void accept(IRVisitor visitor){
+        visitor.visit(this);
     }
     @Override
     public String To_String(){

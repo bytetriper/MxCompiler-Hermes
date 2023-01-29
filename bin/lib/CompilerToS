@@ -1,0 +1,3 @@
+#!/bin/bash
+clang -S -emit-llvm -fno-discard-value-names builtin.c -o builtin.ll -m32
+llc builtin.ll --march=riscv32

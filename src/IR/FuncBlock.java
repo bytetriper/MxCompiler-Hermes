@@ -5,7 +5,9 @@ import java.util.ArrayList;
 import java.util.jar.Attributes.Name;
 
 import IR.ir_inst.Alloca;
+import IR.ir_inst.Bitcast;
 import IR.ir_inst.Br;
+import IR.ir_inst.Call;
 import IR.ir_inst.Load;
 import IR.ir_inst.Ret;
 import IR.ir_inst.Store;
@@ -16,12 +18,12 @@ import IR.ir_type.Ir_Type;
 import IR.ir_type.Pointer_Type;
 import IR.ir_type.Void_Type;
 import IR.ir_value.Ir_Func;
+import IR.ir_value.Ir_IntConstant;
 import IR.ir_value.Ir_Reg;
 import IR.ir_value.Ir_Value;
 import IR.ir_value.Ir_VoidConst;
 import utils.FUCKER;
 import utils.Scope;
-
 public class FuncBlock extends Ir_Value {
     public ArrayList<BasicBlock> blks;
     public BasicBlock Entry, Exit;
@@ -29,30 +31,41 @@ public class FuncBlock extends Ir_Value {
     public ArrayList<Ir_Value> Parameter;
     public Ir_Reg retval;
     public Ir_Value This;
-
+    public Scope FuncScope;
     public FuncBlock(Ir_Func func, ArrayList<Ir_Value> Paras, Scope CurrentScope) {
         Type = func.Type;
-        Ir_Type rType = IRBuilder.is_Bool_Type(Type) ? new Int_Type(8) : Type;
-        Name = func.To_String();
+        Ir_Type rType = IRBuilder.is_Bool_Type(Type) ? new Int_Type(32,true) : Type;
+        Name = func.Name;
         Parameter = new ArrayList<>(Paras);
         blks = new ArrayList<>();
         Entry = new BasicBlock(this, "Entry");// Can Modify
         retval = new Ir_Reg(".retval.p", new Pointer_Type(rType));
         Exit = new BasicBlock(this, "Exit");// Can Modify
+        Ir_Func Malloc=new Ir_Func("_malloc",new Pointer_Type(new Int_Type(32,false)));
         for (var each : Paras)// SP for value type int and bool (need to create a pointer to save the value)
         {
-            if (!(each.Type instanceof Pointer_Type)) {
-                Ir_Reg para_addr = new Ir_Reg("%s_addr".formatted(each.Name), new Pointer_Type(each.Type));
-                Entry.add_inst(new Alloca(para_addr));
-                Entry.add_inst(new Store(para_addr, each));
-                CurrentScope.Push_Value(each.Name, para_addr);
-            } else
-                CurrentScope.Push_Value(each.Name, each);
+            Ir_Reg para_addr = new Ir_Reg("%s_addr".formatted(each.Name), new Pointer_Type(each.Type));
+            Ir_Reg tmp=new Ir_Reg("%s_addr_inttmp".formatted(each.Name),new Pointer_Type(new Int_Type(32,false)));
+            if(each.Type instanceof Int_Type)
+                Entry.add_inst(new Call(para_addr,Malloc,new Ir_IntConstant(1)));
+            else{
+                Entry.add_inst(new Call(tmp,Malloc,new Ir_IntConstant(1)));
+                Entry.add_inst(new Bitcast(para_addr, tmp));
+            }
+            Entry.add_inst(new Store(para_addr, each));
+            //System.out.println("Name:%s para:%s type::%s".formatted(each.Name,para_addr.To_String(),para_addr.Type.To_String()));
+            CurrentScope.Push_Value(each.Name, para_addr);
         }
         if (func.Type instanceof Void_Type) {
             Exit.end_block_with(new Ret(new Ir_VoidConst()));
         } else {
-            Entry.add_inst(new Alloca(retval));
+            Ir_Reg tmp=new Ir_Reg(".retval.ptmp",new Pointer_Type(new Int_Type(32,false)));
+            if(rType instanceof Int_Type)
+                Entry.add_inst(new Call(retval,Malloc,new Ir_IntConstant(1)));
+            else{
+                Entry.add_inst(new Call(tmp,Malloc,new Ir_IntConstant(1)));
+                Entry.add_inst(new Bitcast(retval, tmp));
+            }
             Ir_Reg return_load = new Ir_Reg(".retval", Type);
             if (Type instanceof Int_Type && ((Int_Type) Type).size == 1) {
                 Ir_Reg mid = new Ir_Reg(".retval.Tobool", rType);
@@ -63,6 +76,7 @@ public class FuncBlock extends Ir_Value {
             }
             Exit.end_block_with(new Ret(return_load));
         }
+        FuncScope=CurrentScope;
     }
 
     public void Add_Alloca(Alloca inst) {
@@ -76,7 +90,7 @@ public class FuncBlock extends Ir_Value {
     public Ir_Value Get_This() {// do not guarantee "This" exists or even have any parameters
         if (Parameter.size() == 0)
             return null;
-        return Parameter.get(0);
+        return FuncScope.Var_Value.get("This");
     }
 
     public void End_Func() {
@@ -98,7 +112,7 @@ public class FuncBlock extends Ir_Value {
         // declare <type> <@Name> '('<type1> <name1>,<type2> <name2>... ')'{
         // block_to_string()
         // }
-        String str = "define %s %s".formatted(Type.To_String(), Name);
+        String str = "define %s @%s".formatted(Type.To_String(), Name);
         str += '(';
         // Ir_Reg this_reg=new Ir_Reg("this", Type);
         for (int i = 0; i < Parameter.size(); i++) {

@@ -6,6 +6,7 @@ import IR.ir_value.Ir_Func;
 import IR.ir_value.Ir_Value;
 import astnode.defnode.FuncdefNode;
 import utils.Init_Warning;
+import IR.IRVisitor;
 
 public class Declare_Func extends Ir_Inst {
     public Declare_Func(){
@@ -15,6 +16,10 @@ public class Declare_Func extends Ir_Inst {
     {
         User=func;
         Operands=new ArrayList<>(paras);
+    }
+    @Override
+    public void accept(IRVisitor visitor){
+        visitor.visit(this);
     }
     @Override
     public String To_String()

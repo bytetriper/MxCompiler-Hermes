@@ -1,0 +1,4 @@
+#!/bin/bash
+java Compiler testcases/test.mx >testcases/test.s
+clang++ -S -emit-llvm -fno-discard-value-names testcases/test.cpp -o testcases/test.ll --target=riscv32 -march=rv32gc
+llc testcases/test.ll -o testcases/test-standard.s

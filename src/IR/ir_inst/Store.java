@@ -4,6 +4,8 @@ import utils.Init_Warning;
 import java.util.ArrayList;
 import IR.ir_value.*;
 import IR.ir_type.Pointer_Type;
+import IR.IRVisitor;
+
 public class Store extends Ir_Inst {
     public Store(){
         new Init_Warning("Store_inst");
@@ -16,6 +18,10 @@ public class Store extends Ir_Inst {
         Operands=new ArrayList<>();
         //Operands.add(user);
         Operands.add(Store);
+    }
+    @Override
+    public void accept(IRVisitor visitor){
+        visitor.visit(this);
     }
     @Override
     public String To_String(){

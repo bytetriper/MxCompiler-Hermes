@@ -6,6 +6,7 @@ import java.util.Map;
 import IR.ir_value.Ir_Value;
 import utils.FUCKER;
 import utils.Init_Warning;
+import IR.IRVisitor;
 
 public class BinaryOp extends Ir_Inst {
     public String Op;
@@ -15,7 +16,7 @@ public class BinaryOp extends Ir_Inst {
         new Init_Warning("Ir_BinaryOp");
     }
 
-    private static HashMap<String, String> OpMap = new HashMap<>() {
+    public static HashMap<String, String> OpMap = new HashMap<>() {
         {
             put("+", "add");
             put("-", "sub");
@@ -26,13 +27,13 @@ public class BinaryOp extends Ir_Inst {
             put("&", "and");
             put("|", "or");
             put("^", "xor");
-            put("%%", "srem");
+            put("%%", "srem");//WTF is that
             put("||", "or");
             put("&&", "and");
-            put("%", "urem");
+            put("%", "srem");
         }
     };
-    private static HashMap<String, String> OtherOpMap = new HashMap<>() {
+    public static HashMap<String, String> OtherOpMap = new HashMap<>() {
         {
             put(">", "sgt");
             put(">=", "sge");
@@ -59,7 +60,10 @@ public class BinaryOp extends Ir_Inst {
         Operands.add(Left);
         Operands.add(Right);
     }
-
+    @Override
+    public void accept(IRVisitor visitor){
+        visitor.visit(this);
+    }
     @Override
     public String To_String() {
         // <reg> = <Op type> <reg type> <left name>,<right name>

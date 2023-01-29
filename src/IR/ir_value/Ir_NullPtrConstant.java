@@ -9,7 +9,7 @@ public class Ir_NullPtrConstant extends Ir_Value {
     public Pointer_Type Type;
     public Ir_NullPtrConstant()
     {
-        Type=new Pointer_Type(new Int_Type(32));//i32* for init
+        Type=new Pointer_Type(new Int_Type(32,false));//i32* for init
     }
     @Override
     public int get_size(){
@@ -17,7 +17,7 @@ public class Ir_NullPtrConstant extends Ir_Value {
     }
     @Override
     public String To_String(){
-        //<Any Type> null
-        return "%s null".formatted(Type.To_String());
+        //null
+        return "null".formatted();
     }
 }

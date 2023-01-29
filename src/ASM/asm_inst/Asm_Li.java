@@ -12,6 +12,9 @@ public class Asm_Li extends Asm_Inst{
     @Override
     public String To_String(){
         //li <Rd> <Imm>
-        return "li %s %s".formatted(Rd.To_String(),Imm.To_String());
+        String str="";
+        if(OriginalInst!=null)
+            str="\n\t#%s".formatted(OriginalInst.To_String());
+        return "li %s %s".formatted(Rd.To_String(),Imm.To_String())+str;
     }
 }

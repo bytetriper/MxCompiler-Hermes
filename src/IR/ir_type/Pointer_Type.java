@@ -12,7 +12,7 @@ public class Pointer_Type extends Ir_Type{
     }
     @Override
     public int get_size(){
-        return 8;
+        return 4;
     }
     @Override
     public String To_String(){

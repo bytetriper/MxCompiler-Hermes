@@ -9,6 +9,7 @@ import IR.ir_value.Ir_BoolConst;
 import IR.ir_value.Ir_IntConstant;
 import IR.ir_value.Ir_Value;
 import utils.Init_Warning;
+import IR.IRVisitor;
 
 public class Global_Declare extends Ir_Inst {
     public Global_Declare(){
@@ -27,6 +28,10 @@ public class Global_Declare extends Ir_Inst {
             Operands.add(new Ir_BoolConst(false));
         }
 
+    }
+    @Override
+    public void accept(IRVisitor visitor){
+        visitor.visit(this);
     }
     @Override
     public String To_String(){

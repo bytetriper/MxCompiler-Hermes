@@ -8,12 +8,12 @@ public class Ir_IntConstant extends Ir_Value{
     public Ir_IntConstant(){
         new Init_Warning("Ir_IntConstant");
         val=0;
-        Type=new Int_Type(32);
+        Type=new Int_Type(32,false);
     }
     public Ir_IntConstant(int value)
     {
         val=value;
-        Type=new Int_Type(32);
+        Type=new Int_Type(32,false);
     }
     @Override
     public int get_size(){

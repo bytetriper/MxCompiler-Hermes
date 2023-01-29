@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import IR.ir_value.Ir_Value;
 import utils.Init_Warning;
+import IR.IRVisitor;
 
 public class Bitcast extends Ir_Inst {
     public Bitcast(){
@@ -14,6 +15,10 @@ public class Bitcast extends Ir_Inst {
         User=user;
         Operands=new ArrayList<>();
         Operands.add(Bitcastee);
+    }
+    @Override
+    public void accept(IRVisitor visitor){
+        visitor.visit(this);
     }
     @Override
     public String To_String()

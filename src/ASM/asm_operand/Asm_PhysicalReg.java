@@ -5,7 +5,7 @@ import java.util.HashMap;
 
 public class Asm_PhysicalReg extends Asm_Reg {
     RegName Name;
-    enum RegName{
+    public enum RegName{
         zero ,
         ra , sp , gp , tp ,
         t0 , t1 , t2 , t3 , t4 , t5 , t6 ,

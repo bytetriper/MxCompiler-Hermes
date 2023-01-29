@@ -1,0 +1,3 @@
+#!/bin/bash
+java Compiler $1 >testspace/test.s p
+ravel testspace/test.s lib/builtin.s

@@ -2,6 +2,7 @@ package ASM.asm_inst;
 
 import java.util.HashMap;
 
+import ASM.asm_operand.Asm_Imm;
 import ASM.asm_operand.Asm_Operand;
 
 public class Asm_BinaryOp extends Asm_Inst {
@@ -22,7 +23,12 @@ public class Asm_BinaryOp extends Asm_Inst {
     }};
     public Asm_BinaryOp(Asm_Operand rd,Asm_Operand rs1,Asm_Operand rs2,String op){
         if(Renaming.containsKey(op))
+        {    
             Op=Renaming.get(op);
+            if(rs2 instanceof Asm_Imm){
+                Op=Imm_Support.get(op);
+            }
+        }
         else
             Op=op;
         Rd=rd;
@@ -32,6 +38,10 @@ public class Asm_BinaryOp extends Asm_Inst {
     @Override
     public String To_String(){
         //<op> <Rd> <Rs1> <Rs2>
-        return "%s %s,%s,%s".formatted(Op,Rd.To_String(),Rs1.To_String(),Rs2.To_String());
+        String str="";
+        if(OriginalInst!=null)
+            str="\n\t#%s".formatted(OriginalInst.To_String());
+        str="%s %s,%s,%s".formatted(Op,Rd.To_String(),Rs1.To_String(),Rs2.To_String())+str;
+        return str;
     }
 }

@@ -9,6 +9,8 @@ import astnode.basicnode.*;
 import astnode.defnode.*;
 import astnode.exprnode.*;
 import astnode.stmtsnode.*;
+import backend.InstSelector;
+
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -35,11 +37,11 @@ public class Compiler {
                 return ans;
             }
             int ord(int pos){
-                return content[pos]-48;
+                return content[pos];
             }
             string substring(int left,int right){
                 string tmp=new string();
-                int tmplen=right-left+1;
+                int tmplen=right-left;
                 tmp.content=new int [tmplen];
                 tmp.len=tmplen;
                 for(int i=0;i<tmplen;i++)
@@ -112,21 +114,19 @@ public class Compiler {
         }
         void print(string str)
         {
-            int s=str.len;
-            for(int i=0;i<s;i++)
-                printf_no_collision_please(str.content[i]);
+            printf_no_collision_please(str.content,str.len);
             return;
         }
         void println(string str)
         {
             print(str);
-            printf_no_collision_please(10);
+            print("\n");
             return;
         }
         void printlnInt(int num)
         {
             printInt(num);
-            printf_no_collision_please(10);
+            print("\n");
             return;
         }
         string toString(int i){
@@ -162,28 +162,14 @@ public class Compiler {
         }
         string getString(){
             string tmp=new string();
-            int [] a=new int [300];
-            int cnt=0;
-            while(true){
-                int c=scanf_no_collision_please();
-                if((c>47&&c<58)||(c>64&&c<91)||(c>96&&c<123))
-                {    
-                    a[cnt]=c;
-                }
-                else
-                {    
-                    break;
-                }
-                cnt++;
+            tmp.content=scanf_string();
+            int cnt;
+            for(cnt=0;tmp.content[cnt]!=0;++cnt)
+            {    
             }
             tmp.len=cnt;
-            tmp.content=new int [cnt];
-            for(int i=0;i<cnt;++i)
-            {
-                tmp.content[i]=a[i];
-            }
             return tmp;
-        }        
+        }    
     """;
     static public String Format_Prefix="""
     source_filename = \"test.cpp\"
@@ -203,7 +189,7 @@ public class Compiler {
         s = new Scanner(input).useDelimiter("\\A");
         result = s.hasNext() ? s.next() : "";
         //System.out.println(result);
-        if(args.length>1)    
+        //if(args.length>1)    
             result=prefix+result;
         //MxLexer lexer=new MxLexer(CharStreams.fromStream((input)));
         MxLexer lexer=new MxLexer(CharStreams.fromString(result));
@@ -225,7 +211,12 @@ public class Compiler {
          
         IRBuilder IBD=new IRBuilder(node);
         node.accept(IBD);
-        System.out.print(Format_Prefix+IBD.To_String());
-        //node.GlobalScope.print();
+        
+        InstSelector IS=new InstSelector();
+        IS.visit(IBD);
+        System.out.print(IS.To_String());
+        /*FileOutputStream outputLL=new FileOutputStream("/root/MxCompiler-Hermes/src/testcases/test.ll");
+        outputLL.write((Format_Prefix+IBD.To_String()).getBytes());
+        outputLL.close();*/
     }
 }

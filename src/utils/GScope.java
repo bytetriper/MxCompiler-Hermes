@@ -12,17 +12,18 @@ public class GScope extends Scope{
         Classmember.put("void", new ClassdefNode("void"));
         Classmember.put("null", new ClassdefNode("null"));
         FuncdefNode n1=new FuncdefNode("printInt"),
-        get1=new FuncdefNode("scanf_no_collision_please"),
+        get1=new FuncdefNode("scanf_string"),
         get2=new FuncdefNode("getInt"),
         print1=new FuncdefNode("printf_no_collision_please"),
         malloc=new FuncdefNode("_malloc_toInt"),
         malloc1=new FuncdefNode("_malloc"),
         ss1=new FuncdefNode(".size");
-        get1.type=new TypeNode("int");
+        get1.type=new TypeNode("int",1);
         print1.type=new TypeNode("void");
         malloc.type=new TypeNode("int",1);
         malloc.paras.add(new SingleAssignNode(new TypeNode("int",1)));
         malloc.paras.add(new SingleAssignNode(new TypeNode("int")));
+        print1.paras.add(new SingleAssignNode(new TypeNode("int",1)));
         print1.paras.add(new SingleAssignNode(new TypeNode("int")));
         ss1.type=new TypeNode("int");
         n1.type=new TypeNode("void");
@@ -71,7 +72,7 @@ public class GScope extends Scope{
         Funcmember.put("printInt", n1);
         Funcmember.put(".size", ss1);
         Funcmember.put("printf_no_collision_please",print1);
-        Funcmember.put("scanf_no_collision_please",get1);
+        Funcmember.put("scanf_string",get1);
         Funcmember.put("_malloc_toInt",malloc);
         Funcmember.put("_malloc",malloc1);
         Funcmember.put("getInt",get2);

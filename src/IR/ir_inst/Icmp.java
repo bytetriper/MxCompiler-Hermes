@@ -3,6 +3,7 @@ import IR.ir_value.Ir_Value;
 import utils.FUCKER;
 
 import java.util.ArrayList;
+import IR.IRVisitor;
 
 public class Icmp extends Ir_Inst {
     public String choice;
@@ -31,11 +32,16 @@ public class Icmp extends Ir_Inst {
             case "slt" : choice = "slt" ; break;
             case "sle" : choice = "sle" ; break;
             default: new FUCKER("[Fatal Error]:No Such Choice:{} At Icmp".formatted(ch));
+     
         }
+    }
+    @Override
+    public void accept(IRVisitor visitor){
+        visitor.visit(this);
     }
     @Override
     public String To_String(){
         //%target=Icmp <Cond> <type> <op1> , <op2>
-        return " %s=Icmp %s %s %s,%s".formatted(User.To_String(),choice,Operands.get(0).To_String(),Operands.get(1).To_String());
+        return " %s=Icmp %s %s %s,%s".formatted(User.To_String(),choice,Operands.get(0).Type.To_String(),Operands.get(0).To_String(),Operands.get(1).To_String());
     }
 }

@@ -7,6 +7,7 @@ import IR.ir_type.Label_Type;
 import IR.ir_value.Ir_Value;
 import utils.FUCKER;
 import utils.Init_Warning;
+import IR.IRVisitor;
 
 public class Uncond_Br extends Ir_Inst{
     public Uncond_Br(){
@@ -20,6 +21,10 @@ public class Uncond_Br extends Ir_Inst{
         if(!(Label1.Type instanceof Label_Type))
             new FUCKER("[fatal error]:At Br (user:null) Label1 not Label type,but instead %s ".formatted(Label1.Type.To_String()));
         Operands.add(Label1);
+    }
+    @Override
+    public void accept(IRVisitor visitor){
+        visitor.visit(this);
     }
     @Override
     public String To_String(){

@@ -3,16 +3,23 @@ package IR.ir_inst;
 import java.util.ArrayList;
 
 import IR.ir_type.Pointer_Type;
+import IR.ir_value.Ir_GlobalReg;
 import IR.ir_value.Ir_Value;
 import utils.Init_Warning;
+import IR.IRVisitor;
 
 public class Global_DeclareVar extends Ir_Inst {//Only used For Array
     public Global_DeclareVar(){
         new Init_Warning("Global_DeclareVar_Inst");
     }
     public Global_DeclareVar(Ir_Value user, ArrayList<Ir_Value> val){
+        assert(user instanceof Ir_GlobalReg);
         Operands=new ArrayList<>(val);
         User=user;
+    }
+    @Override
+    public void accept(IRVisitor visitor){
+        visitor.visit(this);
     }
     @Override
     public String To_String(){

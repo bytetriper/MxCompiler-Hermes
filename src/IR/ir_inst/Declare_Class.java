@@ -7,13 +7,13 @@ import java.util.jar.Attributes.Name;
 import IR.ir_type.*;
 import IR.ir_value.Ir_Value;
 import utils.Init_Warning;
+import IR.IRVisitor;
 
 public class Declare_Class extends Ir_Inst {
     public String s;
     public ArrayList<String> Types;
     public Declare_Class(){
         new Init_Warning("Declare_Class");
-
     }
     public Declare_Class(String typename,ArrayList<String> members){
         User=null;
@@ -22,6 +22,9 @@ public class Declare_Class extends Ir_Inst {
         Types=new ArrayList<>(members);
     }
     @Override
+    public void accept(IRVisitor visitor){
+        visitor.visit(this);
+    }
     public String To_String(){
         //%<name> = type {Member_0,Member_1,...,Member_n}
         String str="";

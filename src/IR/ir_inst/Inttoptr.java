@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import IR.ir_type.Int_Type;
 import IR.ir_value.Ir_Value;
 import utils.Init_Warning;
+import IR.IRVisitor;
 
 public class Inttoptr extends Ir_Inst {
     public Inttoptr(){
@@ -15,6 +16,10 @@ public class Inttoptr extends Ir_Inst {
         User=user;
         Operands.add(Int);
         assert(Int.Type instanceof Int_Type);
+    }
+    @Override
+    public void accept(IRVisitor visitor){
+        visitor.visit(this);
     }
     @Override
     public String To_String(){

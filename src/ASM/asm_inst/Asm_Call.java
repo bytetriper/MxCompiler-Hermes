@@ -8,6 +8,9 @@ public class Asm_Call extends Asm_Inst {
     @Override
     public String To_String(){
         //call <func>
-        return "call %s".formatted(FuncName);
+        String str="";
+        if(OriginalInst!=null)
+            str="\n\t#%s".formatted(OriginalInst.To_String());
+        return "call %s".formatted(FuncName)+str;
     }
 }

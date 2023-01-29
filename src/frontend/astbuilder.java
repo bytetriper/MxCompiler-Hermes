@@ -590,9 +590,11 @@ public class astbuilder extends MxBaseVisitor<AstNode>  {
 	 */
 	public ArrayList<Integer> To_ASCII(String str){
 		ArrayList<Integer> tmp=new ArrayList<>();
-		char [] tmpc=str.toCharArray();
 		for(int i=0;i<str.length();++i)
-			tmp.add((int)tmpc[i]);
+		{	
+			char tmpchar=str.charAt(i);
+			tmp.add((int)tmpchar);
+		}
 		return tmp;
 	}
 	@Override public AstNode visitAtomExpr(MxParser.AtomExprContext ctx) { 
@@ -600,7 +602,9 @@ public class astbuilder extends MxBaseVisitor<AstNode>  {
 		{
 			StringNode node=new StringNode();
 			if(Fetch_all)node.content=ctx.getText();
-			node.Content=To_ASCII(ctx.ConstString().getText().substring(1,ctx.ConstString().getText().length()-1));
+			String str=ctx.ConstString().getText().substring(1,ctx.ConstString().getText().length()-1);
+			str=str.replace("\\n", "\n").replace("\\t", "\t").replace("\\\"","\"").replace("\\\\","\\");
+			node.Content=To_ASCII(str);
 			return node;
 		}
 		if(ctx.Integer()!=null)

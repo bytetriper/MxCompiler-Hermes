@@ -8,7 +8,7 @@ public class ForstmtNode extends StmtNode{
     public StmtNode Init;
     public ExprNode End,Change;
     public SuiteNode suite;
-    public BasicBlock Condition_Block,End_Block;
+    public BasicBlock Condition_Block,End_Block,Change_Block;
     public ForstmtNode(){
         super();
     }

@@ -1,5 +1,7 @@
 import os
 import re
+s=input()
+print(s)
 os.chdir("/root/MxCompiler-Hermes/src")
 for path,pathname,file in os.walk("./IR/ir_inst"):
     for f in file:
