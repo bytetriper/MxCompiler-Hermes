@@ -451,7 +451,7 @@ public class Compiler {
         s = new Scanner(input).useDelimiter("\\A");
         result = s.hasNext() ? s.next() : "";
         //System.out.println(result);
-        if(args.length>1)    
+        //if(args.length>1)    
             result=prefix+result;
         //MxLexer lexer=new MxLexer(CharStreams.fromStream((input)));
         MxLexer lexer=new MxLexer(CharStreams.fromString(result));
@@ -473,7 +473,7 @@ public class Compiler {
          
         IRBuilder IBD=new IRBuilder(node);
         node.accept(IBD);
-        System.out.print(Format_Prefix+IBD.To_String());
+        //System.out.print(Format_Prefix+IBD.To_String());
         InstSelector IS=new InstSelector();
         IS.visit(IBD);
         NaiveAllocate NA=new NaiveAllocate();
