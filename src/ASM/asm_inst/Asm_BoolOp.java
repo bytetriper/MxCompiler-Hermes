@@ -5,7 +5,7 @@ import java.util.HashMap;
 import ASM.asm_operand.Asm_Operand;
 import ASM.asm_operand.Asm_PhysicalReg;
 import utils.FUCKER;
-
+import backend.Allocater;
 public class Asm_BoolOp extends Asm_Inst {
     String type;
 
@@ -21,7 +21,10 @@ public class Asm_BoolOp extends Asm_Inst {
         Rs1 = rs1;
         Rs2 = rs2;
     }
-
+    @Override
+    public void accept(Allocater allocater) {
+        allocater.visit(this);
+    }
     @Override
     public String To_String() {
         // type <Rd> <Rs1>,<Rs2>

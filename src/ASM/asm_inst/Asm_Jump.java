@@ -4,22 +4,24 @@ import ASM.Asm_BasicBlock;
 import ASM.Asm_FuncBlock;
 import ASM.asm_operand.Asm_Operand;
 import ASM.asm_operand.Asm_PhysicalReg;
-
+import backend.Allocater;
 public class Asm_Jump extends Asm_Inst {
     String type;
     public Asm_Jump(Asm_Operand rd,Asm_Operand rs1,Asm_Operand rs2,String op){
-        Rd=(Asm_BasicBlock)rd;
-        Rs1=(Asm_PhysicalReg)rs1;
+        Rd=rd;
+        Rs1=rs1;
         Rs2=rs2;
         type=op;
-        assert(Rd instanceof Asm_FuncBlock);
     }
     public Asm_Jump(Asm_Operand rd,Asm_Operand rs1,String op){
-        Rd=(Asm_BasicBlock)rd;
-        Rs1=(Asm_PhysicalReg)rs1;
+        Rd=rd;
+        Rs1=rs1;
         Rs2=null;
         type=op;
-        assert(Rd instanceof Asm_FuncBlock);
+    }
+    @Override
+    public void accept(Allocater allocater) {
+        allocater.visit(this);
     }
     @Override
     public String To_String() {

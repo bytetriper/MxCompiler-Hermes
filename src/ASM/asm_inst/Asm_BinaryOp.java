@@ -4,6 +4,7 @@ import java.util.HashMap;
 
 import ASM.asm_operand.Asm_Imm;
 import ASM.asm_operand.Asm_Operand;
+import backend.Allocater;
 
 public class Asm_BinaryOp extends Asm_Inst {
     public String Op;
@@ -25,15 +26,16 @@ public class Asm_BinaryOp extends Asm_Inst {
         if(Renaming.containsKey(op))
         {    
             Op=Renaming.get(op);
-            if(rs2 instanceof Asm_Imm){
-                Op=Imm_Support.get(op);
-            }
         }
         else
             Op=op;
         Rd=rd;
         Rs1=rs1;
         Rs2=rs2;
+    }
+    @Override
+    public void accept(Allocater allocater) {
+        allocater.visit(this);
     }
     @Override
     public String To_String(){

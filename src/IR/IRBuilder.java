@@ -12,6 +12,7 @@ import IR.ir_inst.GEP;
 import IR.ir_inst.Global_Declare;
 import IR.ir_inst.Global_DeclareVar;
 import IR.ir_inst.Inttoptr;
+import IR.ir_inst.Alloca;
 import IR.ir_inst.BinaryOp;
 import IR.ir_inst.Bitcast;
 import IR.ir_inst.Ir_Inst;
@@ -132,16 +133,7 @@ public class IRBuilder implements ASTVisitor {
         if (CurrentBlock == null)// For global Initialization
             Init_Declare.add(new Global_Declare(tmpValue));
         else {
-            if(type instanceof Int_Type){
-                Ir_Func call_malloc = (Ir_Func) GlobalScope.Var_Value.get("_malloc");
-                CurrentFunc.Entry.add_inst(new Call(tmpValue,call_malloc, new Ir_IntConstant(1)));
-            }
-            else{
-                Ir_Func call_malloc = (Ir_Func) GlobalScope.Var_Value.get("_malloc");
-                Ir_Value tmp=Get_Middle(new Pointer_Type(new Int_Type(32, false)));
-                CurrentFunc.Entry.add_inst(new Call(tmp,call_malloc, new Ir_IntConstant(1)));
-                CurrentFunc.Entry.add_inst(new Bitcast(tmpValue, tmp));
-            }
+            CurrentFunc.Entry.add_inst(new Alloca(tmpValue));
         }
         return tmpValue;
     }
@@ -150,7 +142,6 @@ public class IRBuilder implements ASTVisitor {
         String Name = Find_Available_Name(name, 0);
         Names.add(Name);
         Ir_Value tmpValue;
-        Ir_Func call_malloc = (Ir_Func) GlobalScope.Var_Value.get("_malloc");
         if (is_Bool_Type(type)) {
             if (CurrentBlock == null)// For global Initialization
                 tmpValue = new Ir_GlobalReg(Name, new Pointer_Type(new Int_Type(32, true)));
@@ -159,7 +150,7 @@ public class IRBuilder implements ASTVisitor {
             if (CurrentBlock == null)// For global Initialization
                 Init_Declare.add(new Global_Declare(tmpValue));
             else {
-                    CurrentFunc.Entry.add_inst(new Call(tmpValue,call_malloc, new Ir_IntConstant(1)));
+                    CurrentFunc.Entry.add_inst(new Alloca(tmpValue));
             }
             return tmpValue;
         }
@@ -170,15 +161,7 @@ public class IRBuilder implements ASTVisitor {
         if (CurrentBlock == null)// For global Initialization
             Init_Declare.add(new Global_Declare(tmpValue));
         else {
-            if(type instanceof Int_Type){
-                CurrentFunc.Entry.add_inst(new Call(tmpValue,call_malloc, new Ir_IntConstant(1)));
-            }
-            else
-            {
-                Ir_Value tmp=Get_Middle(new Pointer_Type(new Int_Type(32, false)));
-                CurrentFunc.Entry.add_inst(new Call(tmp,call_malloc, new Ir_IntConstant(1)));
-                CurrentFunc.Entry.add_inst(new Bitcast(tmpValue, tmp));
-            }
+                CurrentFunc.Entry.add_inst(new Alloca(tmpValue));
         }
         return tmpValue;
     }
@@ -688,7 +671,7 @@ public class IRBuilder implements ASTVisitor {
         Ir_Reg tmp = new Ir_Reg(Find_Available_Name(".SizeList", 0),
                 new Pointer_Type(new Int_Type(32, false)));
         Ir_Func call_malloc = (Ir_Func) GlobalScope.Var_Value.get("_malloc");
-        CurrentBlock.add_inst(new Call(tmp, call_malloc, new Ir_IntConstant(paras.size() * 8)));
+        CurrentBlock.add_inst(new Call(tmp, call_malloc, new Ir_IntConstant(paras.size())));
         for (int i = 0; i < paras.size(); ++i) {
             Ir_Value tmp_para = paras.get(i);// Must visited before
             Ir_Value ArrayIdx = new Ir_Reg(Find_Available_Name(".ArrayIdx", 0), tmp.Type);

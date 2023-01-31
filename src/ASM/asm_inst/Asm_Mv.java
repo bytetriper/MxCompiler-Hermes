@@ -2,13 +2,15 @@ package ASM.asm_inst;
 
 import ASM.asm_operand.Asm_Operand;
 import ASM.asm_operand.Asm_PhysicalReg;
-
+import backend.Allocater;
 public class Asm_Mv extends Asm_Inst {
     public Asm_Mv(Asm_Operand rd,Asm_Operand rs1){
-        assert(rd instanceof Asm_PhysicalReg);
-        assert(rs1 instanceof Asm_PhysicalReg);
         Rd=rd;
         Rs1=rs1;
+    }
+    @Override
+    public void accept(Allocater allocater) {
+        allocater.visit(this);
     }
     @Override
     public String To_String(){

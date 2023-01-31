@@ -2,14 +2,13 @@ package ASM.asm_operand;
 
 import IR.ir_value.Ir_Reg;
 import IR.ir_value.Ir_Value;
+import utils.FUCKER;
 
 public class Asm_VirtualReg extends Asm_Reg {
-    public Asm_PhysicalReg Reg;
-    public int Offset,Id;
+    public int Id,Offset=-1;
     static int Reg_cnt=0;
-    public Asm_VirtualReg(Asm_PhysicalReg reg,int offset,int Size){
-        Reg=reg;
-        Offset=offset;
+    
+    public Asm_VirtualReg(int Size){
         Id=Reg_cnt++;
         size=Size;
     }
@@ -17,6 +16,10 @@ public class Asm_VirtualReg extends Asm_Reg {
     public String To_String(){
         //assert offset<(1<<11)
         //reg(offset)
-        return "%d(%s)".formatted(Offset,Reg.To_String());
+        //new FUCKER("Try To To_String a Virtual Reg");
+        if(Offset==-1)
+            return "VT%d".formatted(Id);
+        else
+            return "%d(sp)".formatted(Offset);
     }
 }

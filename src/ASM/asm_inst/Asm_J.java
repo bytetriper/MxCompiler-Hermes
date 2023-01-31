@@ -4,10 +4,14 @@ import java.util.ArrayList;
 import java.util.jar.Attributes.Name;
 
 import ASM.Asm_BasicBlock;
-
+import backend.Allocater;
 public class Asm_J extends Asm_Inst {
     public Asm_J(Asm_BasicBlock blk){
         Rd=blk;
+    }
+    @Override
+    public void accept(Allocater allocater) {
+        allocater.visit(this);
     }
     @Override
     public String To_String(){

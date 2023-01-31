@@ -18,12 +18,11 @@ import ASM.asm_inst.Asm_BinaryOp;
 import ASM.asm_inst.Asm_BoolOp;
 import ASM.asm_inst.Asm_Call;
 import ASM.asm_inst.Asm_Global_Declare;
-import ASM.asm_inst.Asm_Globel_DeclareVar;
+import ASM.asm_inst.Asm_Globel_DeclareVar; 
 import ASM.asm_inst.Asm_Inst;
 import ASM.asm_inst.Asm_J;
 import ASM.asm_inst.Asm_Jump;
 import ASM.asm_inst.Asm_La;
-import ASM.asm_inst.Asm_Li;
 import ASM.asm_inst.Asm_Load;
 import ASM.asm_inst.Asm_Lui;
 import ASM.asm_inst.Asm_Mv;
@@ -34,6 +33,7 @@ import ASM.asm_inst.Asm_Load.Load_Type;
 import ASM.asm_inst.Asm_Store.StoreType;
 import ASM.asm_operand.Asm_GlobalValue;
 import ASM.asm_operand.Asm_Imm;
+import ASM.asm_operand.Asm_OffsetReg;
 import ASM.asm_operand.Asm_Operand;
 import ASM.asm_operand.Asm_PhysicalReg;
 import ASM.asm_operand.Asm_Reg;
@@ -114,134 +114,63 @@ public class InstSelector implements IRVisitor {
             } else if (tmp instanceof Ir_BoolConst) {
                 tmp.Asm_Reg = new Asm_Imm(((Ir_BoolConst) tmp).val ? 1 : 0);
             } else if (tmp instanceof Ir_NullPtrConstant) {
-                tmp.Asm_Reg = new Asm_VirtualReg(zero, 0, 4);
+                tmp.Asm_Reg =new Asm_Imm(0);
             } else if (tmp instanceof Ir_Reg)// TODO
             {
-                tmp.Asm_Reg = new Asm_VirtualReg(s10, CurrentFunc.Total_Offset, tmp.get_size());
-                CurrentFunc.Total_Offset += tmp.get_size();
+                tmp.Asm_Reg = new Asm_VirtualReg(tmp.get_size());
             } else if (tmp instanceof Ir_GlobalReg) {
                 tmp.Asm_Reg = new Asm_GlobalValue((Ir_GlobalReg) tmp);
-
             } else {
                 new FUCKER("MOTHER FUCKER!");
             }
         }
         return tmp.Asm_Reg;
     }
-
-    public void Get_Value(Asm_Operand reg, Asm_Operand target)/* Load value from target to reg(physical) */
-    {
-        assert (reg instanceof Asm_PhysicalReg);
-        if (target instanceof Asm_PhysicalReg) {
-            CurrentBlock.Add_Inst(new Asm_Mv(reg, target));
-        } else if (target instanceof Asm_VirtualReg) {
-            CurrentBlock.Add_Inst(
-                    new Asm_Load(reg, ((Asm_VirtualReg) target).Reg, new Asm_Imm(((Asm_VirtualReg) target).Offset),
-                            target.size == 4 ? Load_Type.LW : Load_Type.LB));
-        } else if (target instanceof Asm_GlobalValue) {
-            CurrentBlock.Add_Inst(
-                    new Asm_Load(reg, target, ((Asm_GlobalValue) target).size == 4 ? Load_Type.LW : Load_Type.LB));
-
-        } else if (target instanceof Asm_Imm) {
-            CurrentBlock.Add_Inst(new Asm_Li(reg, target));
-        } else {
-            new FUCKER("[Fatal Error]Get_Value: Unexpected type of value");
-        }
+    public void Save_regs(FuncBlock funcblk){
+        Asm_BasicBlock entry=(Asm_BasicBlock)funcblk.Entry.Asm_Reg;
+        Asm_BasicBlock end=(Asm_BasicBlock)funcblk.Exit.Asm_Reg;
+        Asm_VirtualReg reg=new Asm_VirtualReg(4);
+        entry.Push_Inst(new Asm_Mv(reg,s0));
+        end.Push_Inst(new Asm_Mv(s0, reg));
     }
-
-    public void Store_Value(Asm_Operand target, Asm_Operand reg) {// Store value in reg(physical) to target
-        assert (reg instanceof Asm_PhysicalReg);
-        if (target instanceof Asm_PhysicalReg) {
-            CurrentBlock.Add_Inst(new Asm_Mv(target, reg));
-        } else if (target instanceof Asm_VirtualReg) {
-            CurrentBlock.Add_Inst(
-                    new Asm_Store(((Asm_VirtualReg) target).Reg, reg, new Asm_Imm(((Asm_VirtualReg) target).Offset),
-                            target.size == 4 ? StoreType.SW : StoreType.SB));
-        } else if (target instanceof Asm_GlobalValue) {
-            CurrentBlock.Add_Inst(
-                    new Asm_Store(reg, target, target.size == 4 ? StoreType.SW : StoreType.SB));
-        } else {
-            new FUCKER("[Fatal Error]Get_Value: Unexpected type of value");
-        }
-    }
-
-    public void Store_Value(Asm_Operand target, Asm_Operand reg, int offset, StoreType type) {// Store value in
-                                                                                              // reg(physical) to
-                                                                                              // target(offset),StoreType
-                                                                                              // must be assiged here
-        assert (reg instanceof Asm_PhysicalReg);
-        if (target instanceof Asm_PhysicalReg) {
-            assert (offset == 0);
-            CurrentBlock.Add_Inst(new Asm_Mv(target, reg));
-        } else if (target instanceof Asm_VirtualReg) {
-            CurrentBlock.Add_Inst(new Asm_Store(((Asm_VirtualReg) target).Reg, reg,
-                    new Asm_Imm(((Asm_VirtualReg) target).Offset + offset), type));
-        } else if (target instanceof Asm_GlobalValue) {
-            // use t6 as temporary register
-            CurrentBlock.Add_Inst(new Asm_Lui(t6, new Asm_Relocation(target, Functype.hi)));
-            CurrentBlock.Add_Inst(new Asm_Store(t6, reg, new Asm_Relocation(target, Functype.lo), type));
-        } else {
-            new FUCKER("[Fatal Error]Get_Value: Unexpected type of value");
-        }
-    }
-
     public void Init() {
         for (var blk : Blocks) {
             ArrayList<Asm_Operand> para = new ArrayList<>();
-            int totalsize = 0;
-            blk.Asm_Reg = new Asm_FuncBlock(blk.Name, s10);
+            blk.Asm_Reg = new Asm_FuncBlock(blk.Name);
             blk.Entry.Asm_Reg = new Asm_BasicBlock(".Entry".formatted(blk.Name));
+            int totalsize=0;
             for (int i = 0; i < blk.Parameter.size(); ++i) {
                 Ir_Value tmp = blk.Parameter.get(i);
                 if (i < 8) {
-                    ((Asm_FuncBlock) blk.Asm_Reg).Add_Var(tmp, s10);
-                    Asm_PhysicalReg reg = ((Asm_VirtualReg) tmp.Asm_Reg).Reg;
-                    Asm_Imm offset = new Asm_Imm(((Asm_VirtualReg) tmp.Asm_Reg).Offset);
                     switch (i) {
                         case 0:
-                            ((Asm_BasicBlock) blk.Entry.Asm_Reg)
-                                    .Push_Inst(new Asm_Store(reg, a0,
-                                            offset, StoreType.SW));
+                            tmp.Asm_Reg = a0;
                             break;
                         case 1:
-                            ((Asm_BasicBlock) blk.Entry.Asm_Reg)
-                                    .Push_Inst(new Asm_Store(reg, a1,
-                                            offset, StoreType.SW));
+                            tmp.Asm_Reg = a1;
                             break;
                         case 2:
-                            ((Asm_BasicBlock) blk.Entry.Asm_Reg)
-                                    .Push_Inst(new Asm_Store(reg, a2,
-                                            offset, StoreType.SW));
+                            tmp.Asm_Reg = a2;
                             break;
                         case 3:
-                            ((Asm_BasicBlock) blk.Entry.Asm_Reg)
-                                    .Push_Inst(new Asm_Store(reg, a3,
-                                            offset, StoreType.SW));
+                            tmp.Asm_Reg = a3;
                             break;
                         case 4:
-                            ((Asm_BasicBlock) blk.Entry.Asm_Reg)
-                                    .Push_Inst(new Asm_Store(reg, a4,
-                                            offset, StoreType.SW));
+                            tmp.Asm_Reg = a4;
                             break;
                         case 5:
-                            ((Asm_BasicBlock) blk.Entry.Asm_Reg)
-                                    .Push_Inst(new Asm_Store(reg, a5,
-                                            offset, StoreType.SW));
+                            tmp.Asm_Reg = a5;
                             break;
                         case 6:
-                            ((Asm_BasicBlock) blk.Entry.Asm_Reg)
-                                    .Push_Inst(new Asm_Store(reg, a6,
-                                            offset, StoreType.SW));
+                            tmp.Asm_Reg = a6;
                             break;
                         case 7:
-                            ((Asm_BasicBlock) blk.Entry.Asm_Reg)
-                                    .Push_Inst(new Asm_Store(reg, a7,
-                                            offset, StoreType.SW));
+                            tmp.Asm_Reg = a7;
                             break;
                     }
                 } else {
-                    tmp.Asm_Reg = new Asm_VirtualReg(s11, totalsize, tmp.get_size());
-                    totalsize += tmp.get_size();
+                    tmp.Asm_Reg = new Asm_OffsetReg(s0,totalsize , tmp.get_size());
+                    totalsize+=tmp.get_size();
                 }
                 para.add(tmp.Asm_Reg);
             }
@@ -258,40 +187,11 @@ public class InstSelector implements IRVisitor {
             blk.Exit.Asm_Reg = new Asm_BasicBlock("%s.Exit".formatted(blk.Name));
         }
     }
-
-    public void CloseUp() {
-        for (var blk : Blocks) {
-            var asmblk = (Asm_BasicBlock) blk.Entry.Asm_Reg;
-            var funcblk = (Asm_FuncBlock) blk.Asm_Reg;
-            asmblk.Push_Inst(new Asm_Store(funcblk.ReturnAddress.Reg, ra, new Asm_Imm(funcblk.ReturnAddress.Offset),
-                    StoreType.SW));
-            asmblk.Push_Inst(new Asm_BinaryOp(s11, sp, new Asm_Imm((funcblk.Total_Offset + funcblk.Arg_Size)), "addi"));// same
-                                                                                                                        // status
-                                                                                                                        // as
-                                                                                                                        // s0
-            asmblk.Push_Inst(new Asm_BinaryOp(s10, sp, new Asm_Imm(funcblk.Arg_Size), "addi"));// sp+arg_size,use to
-                                                                                               // locate normal vregs
-            asmblk.Push_Inst(new Asm_BinaryOp(sp, sp, new Asm_Imm(-(funcblk.Total_Offset + funcblk.Arg_Size)), "addi"));
-            for (var basicblk : funcblk.Blks) {
-                for (var inst : basicblk.Insts) {
-                    if (inst instanceof Asm_Ret) {
-                        var SPinst = new Asm_BinaryOp(sp, sp, new Asm_Imm(funcblk.Total_Offset + funcblk.Arg_Size),
-                                "addi");
-                        basicblk.Add_Before(SPinst, inst);
-                        break;
-                    }
-                }
-                ListIterator<Asm_Inst> it=basicblk.Insts.listIterator();
-                while(it.hasNext()){
-                    if(it.next() instanceof Asm_Call){
-                        it.next();//Add sp sp ...
-                        it.add(new Asm_BinaryOp(s11, sp, new Asm_Imm(funcblk.Total_Offset + funcblk.Arg_Size),"addi"));
-                    }
-                }
-            }
+    public void CloseUp(){
+        for(var each:Blocks){
+            Save_regs(each);
         }
     }
-
     @Override
     public void visit(IRBuilder builder) {
         Blocks = builder.Blocks;
@@ -314,7 +214,7 @@ public class InstSelector implements IRVisitor {
     public void visit(FuncBlock tmpBlock) {
         CurrentFunc = (Asm_FuncBlock) tmpBlock.Asm_Reg;
         CurrentBlock = (Asm_BasicBlock) tmpBlock.Entry.Asm_Reg;
-        // DEBUG(tmpBlock.Entry.To_String());
+        CurrentBlock.Add_Inst(new Asm_Mv(CurrentFunc.ReturnAddress,ra));//save ra in advanced
         CurrentFunc.Add_Block(CurrentBlock);
         visit(tmpBlock.Entry);
         for (var blk : tmpBlock.blks) {
@@ -339,21 +239,14 @@ public class InstSelector implements IRVisitor {
     }
 
     @Override
-    public void visit(Store tmpnode) {
-        Asm_Operand rs1=Get_Operand(tmpnode.Operands.get(0));
-        Asm_Operand rd=Get_Operand(tmpnode.User);
-        Get_Value(t0, Get_Operand(tmpnode.Operands.get(0)));
-        if(rd instanceof Asm_GlobalValue){
-            Store_Value(Get_Operand(tmpnode.User),t0);
-        }
-        else{
-            Get_Value(t1, Get_Operand(tmpnode.User));
-            Store_Value(new Asm_VirtualReg(t1, 0, 4), t0);
-        }
+    public void visit(Store tmpnode) {// MODIFIED
+        Asm_Operand rs1 = Get_Operand(tmpnode.Operands.get(0));
+        Asm_Operand rd = Get_Operand(tmpnode.User);
+        CurrentBlock.Add_Inst(new Asm_Store(rd, rs1,StoreType.SW));
     }
 
     @Override
-    public void visit(Global_DeclareVar tmpnode) {
+    public void visit(Global_DeclareVar tmpnode) {// MODIFIED
         tmpnode.User.Asm_Reg = new Asm_GlobalValue((Ir_GlobalReg) tmpnode.User);
         ArrayList<Asm_Imm> tmpList = new ArrayList<>();
         for (var each : tmpnode.Operands) {
@@ -364,49 +257,46 @@ public class InstSelector implements IRVisitor {
     }
 
     @Override
-    public void visit(Ptrtoint tmpnode) {
-        Asm_PhysicalReg tmpreg = new Asm_PhysicalReg(RegName.t0);
-        Get_Value(tmpreg, Get_Operand(tmpnode.Operands.get(0)));
-        Store_Value(Get_Operand(tmpnode.User), tmpreg);
-        // CurrentBlock.Add_Inst(new Asm_Mv(Get, CurrentBlock));
+    public void visit(Ptrtoint tmpnode) { // MODIFIED
+        Asm_Operand rs1 = Get_Operand(tmpnode.Operands.get(0));
+        Asm_Operand rd = Get_Operand(tmpnode.User);
+        CurrentBlock.Add_Inst(new Asm_Mv(rd, rs1));// Always Save Word
     }
 
     @Override
-    public void visit(BinaryOp tmpnode) {
+    public void visit(BinaryOp tmpnode) {// MODIFIED
         Asm_Operand regl = Get_Operand(tmpnode.Operands.get(0));
         Asm_Operand regr = Get_Operand(tmpnode.Operands.get(1));
         Asm_Operand reg = Get_Operand(tmpnode.User);
-        Get_Value(t1, regl);
-        Get_Value(t2, regr);
         if (BinaryOp.OpMap.containsValue(tmpnode.Op)) {
-            CurrentBlock.Add_Inst(new Asm_BinaryOp(t0, t1, t2, tmpnode.Op));
+            CurrentBlock.Add_Inst(new Asm_BinaryOp(reg, regl, regr, tmpnode.Op));
         } else {
             switch (tmpnode.Op) {
                 case "eq":
-                    CurrentBlock.Add_Inst(new Asm_BinaryOp(t1, t1, t2, "sub"));
-                    CurrentBlock.Add_Inst(new Asm_SexzOp(t0, t1, "seqz"));
+                    CurrentBlock.Add_Inst(new Asm_BinaryOp(reg, regl, regr, "sub"));
+                    CurrentBlock.Add_Inst(new Asm_SexzOp(reg, reg, "seqz"));
                     break;
                 case "ne":
-                    CurrentBlock.Add_Inst(new Asm_BinaryOp(t1, t1, t2, "sub"));
-                    CurrentBlock.Add_Inst(new Asm_SexzOp(t0, t1, "snez"));
+                    CurrentBlock.Add_Inst(new Asm_BinaryOp(reg, regl, regr, "sub"));
+                    CurrentBlock.Add_Inst(new Asm_SexzOp(reg, reg, "snez"));
                     break;
                 case "sgt":
-                    CurrentBlock.Add_Inst(new Asm_BoolOp(t0, t2, t1, "slt"));
+                    CurrentBlock.Add_Inst(new Asm_BinaryOp(reg, regr, regl, "sub"));
+                    CurrentBlock.Add_Inst(new Asm_BoolOp(reg, reg, new Asm_Imm(0), "slt"));
                     break;
                 case "sge":
-                    CurrentBlock.Add_Inst(new Asm_BinaryOp(t1, t2, t1, "sub"));
-                    CurrentBlock.Add_Inst(new Asm_BoolOp(t0, t1, new Asm_Imm(1), "slti"));
+                    CurrentBlock.Add_Inst(new Asm_BinaryOp(reg, regr, regl, "sub"));
+                    CurrentBlock.Add_Inst(new Asm_BoolOp(reg, reg, new Asm_Imm(1), "slt"));
                     break;
                 case "slt":
-                    CurrentBlock.Add_Inst(new Asm_BoolOp(t0, t1, t2, "slt"));
+                    CurrentBlock.Add_Inst(new Asm_BoolOp(reg, regl, regr, "slt"));
                     break;
                 case "sle":
-                    CurrentBlock.Add_Inst(new Asm_BinaryOp(t1, t1, t2, "sub"));
-                    CurrentBlock.Add_Inst(new Asm_BoolOp(t0, t1, new Asm_Imm(1), "slti"));
+                    CurrentBlock.Add_Inst(new Asm_BinaryOp(reg, regl, regr, "sub"));
+                    CurrentBlock.Add_Inst(new Asm_BoolOp(reg, reg, new Asm_Imm(1), "slt"));
                     break;
             }
         }
-        Store_Value(reg, t0);
     }
 
     @Override
@@ -419,219 +309,190 @@ public class InstSelector implements IRVisitor {
             if (type instanceof Struct_Type) {
                 int tmp = ((Ir_IntConstant) tmpnode.Operands.get(1)).val;
                 Asm_Operand offset = new Asm_Imm(((Struct_Type) type).Get_Offset(tmp));
-                Get_Value(t0, rs1);
-                Get_Value(t1, offset);
-                CurrentBlock.Add_Inst(new Asm_BinaryOp(t0, t0, t1, "add"));
-                Store_Value(rd, t0);
+                CurrentBlock.Add_Inst(new Asm_BinaryOp(rd, rs1, offset, "add"));
             } else {
-                CurrentBlock.Add_Inst(new Asm_La(t0, rs1));
+                Asm_Operand tmp=new Asm_VirtualReg(4);
+                CurrentBlock.Add_Inst(new Asm_La(tmp, rs1));
                 Asm_Imm offset = new Asm_Imm(((Ir_IntConstant) tmpnode.Operands.get(1)).val * 4);
-                Get_Value(t1, offset);
-                CurrentBlock.Add_Inst(new Asm_BinaryOp(t0, t0, t1, "add"));
-                Store_Value(rd, t0);
+                CurrentBlock.Add_Inst(new Asm_BinaryOp(rd, tmp, offset, "add"));
             }
         } else {
             var offset = Get_Operand(tmpnode.Operands.get(1));
-            Get_Value(t1, offset);
-            Get_Value(t0, rs1);
-            CurrentBlock.Add_Inst(new Asm_BinaryOp(t1, t1, new Asm_Imm(rd.size / 2), "slli"));// mul t1 4/1
-            CurrentBlock.Add_Inst(new Asm_BinaryOp(t0, t0, t1, "add"));
-            Store_Value(rd, t0);
+            Asm_Operand tmpreg=new Asm_VirtualReg(4);
+            CurrentBlock.Add_Inst(new Asm_Mv(tmpreg, offset));
+            CurrentBlock.Add_Inst(new Asm_BinaryOp(tmpreg, tmpreg, new Asm_Imm(rd.size / 2), "sll"));// mul t1 4/1
+            CurrentBlock.Add_Inst(new Asm_BinaryOp(rd, rs1, tmpreg, "add"));
         }
     }
 
     @Override
-    public void visit(Bitcast tmpnode) {
-        Get_Value(t0, Get_Operand(tmpnode.Operands.get(0)));
-        Store_Value(Get_Operand(tmpnode.User), t0);
+    public void visit(Bitcast tmpnode) {// MODIFIED
+        Asm_Operand rs1 = Get_Operand(tmpnode.Operands.get(0));
+        Asm_Operand rd = Get_Operand(tmpnode.User);
+        CurrentBlock.Add_Inst(new Asm_Mv(rd, rs1));// Always Save Word
     }
 
     @Override
-    public void visit(Ret tmpnode) {
+    public void visit(Ret tmpnode) {// MODIFIED
         if (tmpnode.Operands.size() > 0) {
             var tmp = tmpnode.Operands.get(0);
             if (!(tmp instanceof Ir_VoidConst)) {
-                // DEBUG(Get_Operand(tmpnode.Operands.get(0)).To_String());
-                // assert(Get_Operand(tmpnode.Operands.get(0)) instanceof Asm_VirtualReg);
-                Get_Value(a0, Get_Operand(tmpnode.Operands.get(0)));
-
+                CurrentBlock.Add_Inst(new Asm_Mv(a0, Get_Operand(tmp)));
             }
         }
-        Get_Value(ra, CurrentFunc.ReturnAddress);
+        CurrentBlock.Add_Inst(new Asm_Mv(ra, CurrentFunc.ReturnAddress));
         // all alloca is put inside the Entry Block,so Total_Offset here must be the
         // real offset
         CurrentBlock.Add_Inst(new Asm_Ret());
     }
 
     @Override
-    public void visit(Zext tmpnode) {
-        Get_Value(t0, Get_Operand(tmpnode.Operands.get(0)));
-        Store_Value(Get_Operand(tmpnode.User), t0);
+    public void visit(Zext tmpnode) {// MODIFIED
+        CurrentBlock
+                .Add_Inst(new Asm_Mv(Get_Operand(tmpnode.User), Get_Operand(tmpnode.Operands.get(0))));
     }
 
     @Override
-    public void visit(Trunc tmpnode) {
-        int t = tmpnode.User.Type.get_size() << 3;
+    public void visit(Trunc tmpnode) {// MODIFIED
         Asm_Imm imm = new Asm_Imm(1);
-        Get_Value(t1, Get_Operand(tmpnode.Operands.get(0)));
-        Get_Value(t2, imm);
-        CurrentBlock.Add_Inst(new Asm_BinaryOp(t0, t1, t2, "and"));
-        Store_Value(Get_Operand(tmpnode.User), t0);
+        CurrentBlock.Add_Inst(
+                new Asm_BinaryOp(Get_Operand(tmpnode.User), Get_Operand(tmpnode.Operands.get(0)), imm, "and"));
     }
 
     @Override
-    public void visit(Alloca tmpnode) {
-        Get_Operand(tmpnode.User);
+    public void visit(Alloca tmpnode) {// MODIFIED
+        tmpnode.User.Asm_Reg = new Asm_OffsetReg(sp, (CurrentFunc.Total_Offset+CurrentFunc.Arg_Size), tmpnode.User.get_size());
+        CurrentFunc.Total_Offset += tmpnode.User.get_size();
     }
 
     @Override
-    public void visit(Inttoptr tmpnode) {
-        Get_Value(t0, Get_Operand(tmpnode.Operands.get(0)));
-        Store_Value(Get_Operand(tmpnode.User), t0);
+    public void visit(Inttoptr tmpnode) {// MODIFIED
+        CurrentBlock
+                .Add_Inst(new Asm_Mv(Get_Operand(tmpnode.User), Get_Operand(tmpnode.Operands.get(0))));
     }
 
     @Override
-    public void visit(Load tmpnode) {
+    public void visit(Load tmpnode) {// MODIFIED
         Asm_Operand Base = Get_Operand(tmpnode.Operands.get(0));
-        if(Base instanceof Asm_GlobalValue){
-            CurrentBlock.Add_Inst(new Asm_La(t1, Base));
-        }
-        else
-            Get_Value(t1, Base);
         Ir_Value user = tmpnode.User;
         Asm_Operand Auser = Get_Operand(tmpnode.User);
-        int totalsize = 0;
         if (user.Type instanceof Struct_Type) {
-            Struct_Type type = (Struct_Type) user.Type;
-            for (var SubType : type.Mem_Cnt) {
-                if (SubType == 4) {
-                    CurrentBlock.Add_Inst(new Asm_Load(t0, t1, new Asm_Imm(totalsize), Load_Type.LW));
-                    Store_Value(Auser, t0, totalsize, StoreType.SW);
-                } else {
-                    CurrentBlock.Add_Inst(new Asm_Load(t0, t1, new Asm_Imm(totalsize), Load_Type.LB));
-                    Store_Value(Auser, t0, totalsize, StoreType.SB);
-                }
-                totalsize += SubType;
-            }
+            new FUCKER("Load struct struct* shouldn't exist");
         } else {
-            Get_Value(t0, new Asm_VirtualReg(t1, 0, 4));
-            Store_Value(Auser, t0);
+            CurrentBlock.Add_Inst(new Asm_Load(Auser, Base,Load_Type.LW));
         }
     }
 
     @Override
-    public void visit(Br tmpnode) {
+    public void visit(Br tmpnode) {// MODIFIED
         Asm_Operand j1 = Get_Operand(tmpnode.Operands.get(1));
         Asm_Operand j2 = Get_Operand(tmpnode.Operands.get(2));
         Asm_Operand judge = Get_Operand(tmpnode.Operands.get(0));
-        Get_Value(t0, judge);
-        CurrentBlock.Add_Inst(new Asm_Jump(j1, t0, "bnez"));
-        CurrentBlock.Add_Inst(new Asm_Jump(j2, t0, "beqz"));
+        // Get_Value(t0, judge);
+        CurrentBlock.Add_Inst(new Asm_Jump(j1, judge, "bnez"));
+        CurrentBlock.Add_Inst(new Asm_Jump(j2, judge, "beqz"));
     }
 
     @Override
-    public void visit(Icmp tmpnode) {
+    public void visit(Icmp tmpnode) {// MODIFIED
         Asm_Operand regl = Get_Operand(tmpnode.Operands.get(0));
         Asm_Operand regr = Get_Operand(tmpnode.Operands.get(1));
         Asm_Operand reg = Get_Operand(tmpnode.User);
-        Get_Value(t1, regl);
-        Get_Value(t2, regr);
         switch (tmpnode.choice) {
             case "eq":
-                CurrentBlock.Add_Inst(new Asm_BinaryOp(t1, t1, t2, "sub"));
-                CurrentBlock.Add_Inst(new Asm_SexzOp(t0, t1, "seqz"));
+                CurrentBlock.Add_Inst(new Asm_BinaryOp(reg, regl, regr, "sub"));
+                CurrentBlock.Add_Inst(new Asm_SexzOp(reg, reg, "seqz"));
                 break;
             case "ne":
-                CurrentBlock.Add_Inst(new Asm_BinaryOp(t1, t1, t2, "sub"));
-                CurrentBlock.Add_Inst(new Asm_SexzOp(t0, t1, "snez"));
+                CurrentBlock.Add_Inst(new Asm_BinaryOp(reg, regl, regr, "sub"));
+                CurrentBlock.Add_Inst(new Asm_SexzOp(reg, reg, "snez"));
                 break;
             case "sgt":
-                CurrentBlock.Add_Inst(new Asm_BoolOp(t0, t2, t1, "slt"));
+                CurrentBlock.Add_Inst(new Asm_BinaryOp(reg, regr, regl, "sub"));
+                CurrentBlock.Add_Inst(new Asm_BoolOp(reg, reg, new Asm_Imm(0), "slt"));
                 break;
             case "sge":
-                CurrentBlock.Add_Inst(new Asm_BinaryOp(t1, t2, t1, "sub"));
-                CurrentBlock.Add_Inst(new Asm_BoolOp(t0, t1, new Asm_Imm(1), "slti"));
+            CurrentBlock.Add_Inst(new Asm_BinaryOp(reg, regr, regl, "sub"));
+                CurrentBlock.Add_Inst(new Asm_BoolOp(reg, reg, new Asm_Imm(1), "slt"));
                 break;
             case "slt":
-                CurrentBlock.Add_Inst(new Asm_BoolOp(t0, t1, t2, "slt"));
+                CurrentBlock.Add_Inst(new Asm_BoolOp(reg, regl, regr, "slt"));
                 break;
             case "sle":
-                CurrentBlock.Add_Inst(new Asm_BinaryOp(t1, t1, t2, "sub"));
-                CurrentBlock.Add_Inst(new Asm_BoolOp(t0, t1, new Asm_Imm(1), "slti"));
+                CurrentBlock.Add_Inst(new Asm_BinaryOp(reg, regl, regr, "sub"));
+                CurrentBlock.Add_Inst(new Asm_BoolOp(reg, reg, new Asm_Imm(1), "slt"));
                 break;
             case "ugt":
-                CurrentBlock.Add_Inst(new Asm_BoolOp(t0, t2, t1, "sltu"));
+                CurrentBlock.Add_Inst(new Asm_BinaryOp(reg, regr, regl, "sub"));
+                CurrentBlock.Add_Inst(new Asm_BoolOp(reg, reg, new Asm_Imm(1), "sltu"));
                 break;
             case "uge":
-                CurrentBlock.Add_Inst(new Asm_BinaryOp(t1, t2, t1, "sub"));
-                CurrentBlock.Add_Inst(new Asm_BoolOp(t0, t1, new Asm_Imm(1), "sltiu"));
+                CurrentBlock.Add_Inst(new Asm_BoolOp(reg, regr, regl, "sltu"));
                 break;
             case "ult":
-                CurrentBlock.Add_Inst(new Asm_BoolOp(t0, t1, t2, "sltu"));
+                CurrentBlock.Add_Inst(new Asm_BoolOp(reg, regl, regr, "sltu"));
                 break;
             case "ule":
-                CurrentBlock.Add_Inst(new Asm_BinaryOp(t1, t1, t2, "sub"));
-                CurrentBlock.Add_Inst(new Asm_BoolOp(t0, t1, new Asm_Imm(1), "sltiu"));
+                CurrentBlock.Add_Inst(new Asm_BinaryOp(reg, regl, regr, "sub"));
+                CurrentBlock.Add_Inst(new Asm_BoolOp(reg, reg, new Asm_Imm(1), "sltu"));
                 break;
-
         }
-        Store_Value(reg, t0);
     }
 
     @Override
-    public void visit(Global_Declare tmpnode) {
+    public void visit(Global_Declare tmpnode) {// MODIFIED
         Asm_GlobalValue tmp = new Asm_GlobalValue(((Ir_GlobalReg) tmpnode.User));
         Global_Declares.add(new Asm_Global_Declare(tmp));
     }
 
     @Override
-    public void visit(Uncond_Br tmpnode) {
+    public void visit(Uncond_Br tmpnode) {// MODIFIED
         CurrentBlock.Add_Inst(new Asm_J((Asm_BasicBlock) tmpnode.Operands.get(0).Asm_Reg));
     }
 
     @Override
-    public void visit(Call tmpnode) {
+    public void visit(Call tmpnode) {// MODIFIED
         int totalsize = 0;
         for (int i = 0; i < tmpnode.Operands.size(); ++i) {
             var para = Get_Operand(tmpnode.Operands.get(i));
             if (i < 8) {
                 switch (i) {
                     case 0:
-                        Get_Value(a0, para);
+                        CurrentBlock.Add_Inst(new Asm_Mv(a0, para));
                         break;
                     case 1:
-                        Get_Value(a1, para);
+                        CurrentBlock.Add_Inst(new Asm_Mv(a1, para));
                         break;
                     case 2:
-                        Get_Value(a2, para);
+                        CurrentBlock.Add_Inst(new Asm_Mv(a2, para));
                         break;
                     case 3:
-                        Get_Value(a3, para);
+                        CurrentBlock.Add_Inst(new Asm_Mv(a3, para));
                         break;
                     case 4:
-                        Get_Value(a4, para);
+                        CurrentBlock.Add_Inst(new Asm_Mv(a4, para));
                         break;
                     case 5:
-                        Get_Value(a5, para);
+                        CurrentBlock.Add_Inst(new Asm_Mv(a5, para));
                         break;
                     case 6:
-                        Get_Value(a6, para);
+                        CurrentBlock.Add_Inst(new Asm_Mv(a6, para));
                         break;
                     case 7:
-                        Get_Value(a7, para);
+                        CurrentBlock.Add_Inst(new Asm_Mv(a7, para));
                         break;
                 }
             } else {
-                Get_Value(t0, para);
-                Store_Value(new Asm_VirtualReg(sp, totalsize, para.size), t0);
+                CurrentBlock.Add_Inst(new Asm_Mv(new Asm_OffsetReg(sp, totalsize, para.size), para));
                 totalsize += para.size;
             }
-            
+
         }
+        CurrentBlock.Add_Inst(new Asm_Mv(CurrentFunc.ReturnAddress,ra));
         CurrentBlock.Add_Inst(new Asm_Call(tmpnode.Func.Name));
-        CurrentBlock.Add_Inst(new Asm_BinaryOp(s10, sp, new Asm_Imm(CurrentFunc.Arg_Size), "addi"));
+        CurrentBlock.Add_Inst(new Asm_Mv(ra,CurrentFunc.ReturnAddress));
         if (tmpnode.User != null)
-            Store_Value(Get_Operand(tmpnode.User), a0);
+            CurrentBlock.Add_Inst(new Asm_Mv(Get_Operand(tmpnode.User), a0));
     }
 
     @Override

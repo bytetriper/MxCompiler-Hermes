@@ -41,17 +41,10 @@ public class FuncBlock extends Ir_Value {
         Entry = new BasicBlock(this, "Entry");// Can Modify
         retval = new Ir_Reg(".retval.p", new Pointer_Type(rType));
         Exit = new BasicBlock(this, "Exit");// Can Modify
-        Ir_Func Malloc=new Ir_Func("_malloc",new Pointer_Type(new Int_Type(32,false)));
         for (var each : Paras)// SP for value type int and bool (need to create a pointer to save the value)
         {
             Ir_Reg para_addr = new Ir_Reg("%s_addr".formatted(each.Name), new Pointer_Type(each.Type));
-            Ir_Reg tmp=new Ir_Reg("%s_addr_inttmp".formatted(each.Name),new Pointer_Type(new Int_Type(32,false)));
-            if(each.Type instanceof Int_Type)
-                Entry.add_inst(new Call(para_addr,Malloc,new Ir_IntConstant(1)));
-            else{
-                Entry.add_inst(new Call(tmp,Malloc,new Ir_IntConstant(1)));
-                Entry.add_inst(new Bitcast(para_addr, tmp));
-            }
+            Entry.add_inst(new Alloca(para_addr));
             Entry.add_inst(new Store(para_addr, each));
             //System.out.println("Name:%s para:%s type::%s".formatted(each.Name,para_addr.To_String(),para_addr.Type.To_String()));
             CurrentScope.Push_Value(each.Name, para_addr);
@@ -59,13 +52,7 @@ public class FuncBlock extends Ir_Value {
         if (func.Type instanceof Void_Type) {
             Exit.end_block_with(new Ret(new Ir_VoidConst()));
         } else {
-            Ir_Reg tmp=new Ir_Reg(".retval.ptmp",new Pointer_Type(new Int_Type(32,false)));
-            if(rType instanceof Int_Type)
-                Entry.add_inst(new Call(retval,Malloc,new Ir_IntConstant(1)));
-            else{
-                Entry.add_inst(new Call(tmp,Malloc,new Ir_IntConstant(1)));
-                Entry.add_inst(new Bitcast(retval, tmp));
-            }
+            Entry.add_inst(new Alloca(retval));
             Ir_Reg return_load = new Ir_Reg(".retval", Type);
             if (Type instanceof Int_Type && ((Int_Type) Type).size == 1) {
                 Ir_Reg mid = new Ir_Reg(".retval.Tobool", rType);

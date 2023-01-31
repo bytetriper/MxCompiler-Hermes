@@ -2,12 +2,15 @@ package ASM.asm_inst;
 
 import ASM.asm_operand.Asm_Imm;
 import ASM.asm_operand.Asm_Operand;
-
+import backend.Allocater;
 public class Asm_Li extends Asm_Inst{
     public Asm_Li(Asm_Operand rd,Asm_Operand imm){
-        assert(imm instanceof Asm_Imm);
         Rd=rd;
         Imm=imm;
+    }
+    @Override
+    public void accept(Allocater allocater) {
+        allocater.visit(this);
     }
     @Override
     public String To_String(){

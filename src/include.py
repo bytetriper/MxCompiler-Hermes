@@ -1,12 +1,10 @@
 import os
 import re
-s=input()
-print(s)
 os.chdir("/root/MxCompiler-Hermes/src")
-for path,pathname,file in os.walk("./IR/ir_inst"):
+for path,pathname,file in os.walk("./ASM/asm_inst"):
     for f in file:
         if re.match(".*java$",f) and f!="ASTVisitor.java":
             pass
-            print(f"@Override\n public void visit({f.split('.')[0]} tmpnode){'{}'}")
+            print(f"@Override\n public void visit({f.split('.')[0]} inst){'{}'}")
             #print("import ")
             #print("{\n return self.visit(this);\n}")

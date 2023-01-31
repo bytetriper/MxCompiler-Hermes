@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import ASM.asm_operand.Asm_GlobalValue;
 import ASM.asm_operand.Asm_Imm;
 import ASM.asm_operand.Asm_Operand;
-
+import backend.Allocater;
 public class Asm_Globel_DeclareVar extends Asm_Inst {
     public ArrayList<Asm_Imm> Words;
     public Asm_Globel_DeclareVar(Asm_Operand reg,ArrayList<Asm_Imm> word)
@@ -13,6 +13,10 @@ public class Asm_Globel_DeclareVar extends Asm_Inst {
         Words=word;
         assert(reg instanceof Asm_GlobalValue);
         Rd=reg;
+    }
+    @Override
+    public void accept(Allocater allocater) {
+        allocater.visit(this);
     }
     @Override
     public String To_String() {

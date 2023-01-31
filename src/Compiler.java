@@ -10,6 +10,7 @@ import astnode.defnode.*;
 import astnode.exprnode.*;
 import astnode.stmtsnode.*;
 import backend.InstSelector;
+import backend.NaiveAllocate;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -24,7 +25,9 @@ public class Compiler {
         class string {
             int[] content;
             int len;
-            string(){}
+            string(){
+                len=0;
+            }
             int length(){
                 return len;
             } 
@@ -129,36 +132,37 @@ public class Compiler {
             print("\n");
             return;
         }
-        string toString(int i){
-            int []a=new  int [20];//log(i)<20;
+        string tmp_no_collision_plz=new string();
+        int []a_no_collison_plz=new  int [20];
+        string toString(int i){//log(i)<20;
+            if(tmp_no_collision_plz.len==0)
+                tmp_no_collision_plz.content=new int[20];
             int cnt=0;
             bool fg=false;
             if(i==0)
             {
                 cnt=1;
-                a[0]=0;
+                a_no_collison_plz[0]=0;
             }
             if(i<0){
                 fg=true;
                 i=-i;
             }
             while(i!=0){
-                a[cnt]=i%10;
+                a_no_collison_plz[cnt]=i%10;
                 i=i/10;
                 ++cnt;
             }
             if(fg){
-                a[cnt]=-3;
+                a_no_collison_plz[cnt]=-3;
                 ++cnt;
             }
-            string tmp=new string();
-            tmp.len=cnt;
-            tmp.content=new int [cnt];
+            tmp_no_collision_plz.len=cnt;
             for(int i=0;i<cnt;++i)
             {
-                tmp.content[i]=a[cnt-i-1]+48;
+                tmp_no_collision_plz.content[i]=a_no_collison_plz[cnt-i-1]+48;
             }
-            return tmp;
+            return tmp_no_collision_plz;
         }
         string getString(){
             string tmp=new string();
@@ -447,7 +451,7 @@ public class Compiler {
         s = new Scanner(input).useDelimiter("\\A");
         result = s.hasNext() ? s.next() : "";
         //System.out.println(result);
-        //if(args.length>1)    
+        if(args.length>1)    
             result=prefix+result;
         //MxLexer lexer=new MxLexer(CharStreams.fromStream((input)));
         MxLexer lexer=new MxLexer(CharStreams.fromString(result));
@@ -469,10 +473,12 @@ public class Compiler {
          
         IRBuilder IBD=new IRBuilder(node);
         node.accept(IBD);
-        
+        System.out.print(Format_Prefix+IBD.To_String());
         InstSelector IS=new InstSelector();
         IS.visit(IBD);
-        //System.out.print(IS.To_String());
+        NaiveAllocate NA=new NaiveAllocate();
+        NA.visit(IS);
+        
         FileOutputStream outputASM=new FileOutputStream("output.s");
         outputASM.write(IS.To_String().getBytes());
         outputASM.close();

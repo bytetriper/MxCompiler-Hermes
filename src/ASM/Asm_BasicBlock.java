@@ -7,7 +7,7 @@ import java.util.jar.Attributes.Name;
 import ASM.asm_inst.Asm_Inst;
 import ASM.asm_operand.Asm_Operand;
 import utils.FUCKER;
-
+import backend.Allocater;
 public class Asm_BasicBlock extends Asm_Operand {
     public String Name;
     public LinkedList<Asm_Inst> Insts;
@@ -26,12 +26,8 @@ public class Asm_BasicBlock extends Asm_Operand {
     public void Add_Inst(Asm_Inst inst){
         Insts.add(inst);
     }
-    public void Add_Before(Asm_Inst inst,Asm_Inst base){
-        int index=Insts.indexOf(base);
-        if(index!=-1)
-            Insts.add(index,inst);
-        else
-            new FUCKER("No Such inst:%s\n   at block %s".formatted(base.To_String(),Name));
+    public void accept(Allocater allocater) {
+        allocater.visit(this);
     }
     @Override
     public String To_String(){
