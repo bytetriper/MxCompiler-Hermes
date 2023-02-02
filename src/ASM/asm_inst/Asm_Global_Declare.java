@@ -1,13 +1,13 @@
 package ASM.asm_inst;
 
 import ASM.asm_operand.Asm_GlobalValue;
-import backend.Allocater;
+import backend.AsmVisitor;
 public class Asm_Global_Declare extends Asm_Inst {
     public Asm_Global_Declare(Asm_GlobalValue reg){
         Rd=reg;
     }
     @Override
-    public void accept(Allocater allocater) {
+    public void accept(AsmVisitor allocater) {
         allocater.visit(this);
     }
     @Override

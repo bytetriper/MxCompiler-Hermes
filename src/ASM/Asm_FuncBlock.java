@@ -1,15 +1,25 @@
 package ASM;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.jar.Attributes.Name;
 
+import org.antlr.v4.misc.Graph;
+import org.antlr.v4.misc.Graph.Node;
+
+import ASM.asm_inst.Asm_Inst;
 import ASM.asm_operand.Asm_OffsetReg;
 import ASM.asm_operand.Asm_Operand;
 import ASM.asm_operand.Asm_PhysicalReg;
 import ASM.asm_operand.Asm_VirtualReg;
 import IR.ir_inst.Alloca;
 import IR.ir_value.Ir_Value;
-import backend.Allocater;
+import backend.AsmVisitor;
+import backend.GraphModule;
+import backend.GraphNode;
 public class Asm_FuncBlock extends Asm_Operand {
     public ArrayList<Asm_BasicBlock> Blks;
     public ArrayList<Asm_Operand> Paras;
@@ -17,9 +27,13 @@ public class Asm_FuncBlock extends Asm_Operand {
     public Asm_Operand ReturnAddress;
     public int Arg_Size=0;
     public int Total_Offset=0;
+    public GraphModule<Asm_Inst> CFG;
+    public GraphModule<Asm_Operand> InteferenceGraph;
     public Asm_FuncBlock(String name){
         Name=name;
         Blks=new ArrayList<>();
+        CFG=new GraphModule<>();
+        InteferenceGraph=new GraphModule<>();
         ReturnAddress=new Asm_VirtualReg(4);
     }
     public void Add_Block(Asm_BasicBlock blk){
@@ -29,9 +43,10 @@ public class Asm_FuncBlock extends Asm_Operand {
         reg.Offset=Total_Offset+Arg_Size;
         Total_Offset+=reg.size;
     }
-    public void accept(Allocater allocater) {
+    public void accept(AsmVisitor allocater) {
         allocater.visit(this);
     }
+    
     @Override
     public String To_String(){
         /*

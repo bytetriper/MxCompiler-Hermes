@@ -14,7 +14,7 @@ import ASM.asm_inst.Asm_Store.StoreType;
 import ASM.asm_inst.Asm_Load.Load_Type;
 import utils.FUCKER;
 
-public class NaiveAllocate implements Allocater {
+public class NaiveAllocate implements AsmVisitor {
     public Asm_BasicBlock CurrentBlock;
     public Asm_FuncBlock CurrentFunc;
     Asm_PhysicalReg t0 = new Asm_PhysicalReg(RegName.t0);

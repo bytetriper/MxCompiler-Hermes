@@ -6,7 +6,7 @@ import ASM.asm_operand.Asm_Operand;
 import ASM.asm_operand.Asm_PhysicalReg;
 import ASM.asm_operand.Asm_Relocation;
 import ASM.asm_operand.Asm_PhysicalReg.RegName;
-import backend.Allocater;
+import backend.AsmVisitor;
 public class Asm_Store extends Asm_Inst {
     public enum StoreType{
         SB,SW
@@ -24,7 +24,7 @@ public class Asm_Store extends Asm_Inst {
         storetype=type;
     }
     @Override
-    public void accept(Allocater allocater) {
+    public void accept(AsmVisitor allocater) {
         allocater.visit(this);
     }
     @Override

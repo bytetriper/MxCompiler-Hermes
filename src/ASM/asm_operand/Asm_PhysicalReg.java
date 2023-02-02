@@ -49,6 +49,11 @@ public class Asm_PhysicalReg extends Asm_Reg {
     };
     public Asm_PhysicalReg(RegName name){
         Name=name;
+        color=this;//pre-colored
+    }
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof Asm_PhysicalReg e&& e.Name==Name;
     }
     @Override
     public String To_String(){

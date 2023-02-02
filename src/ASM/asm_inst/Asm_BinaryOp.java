@@ -4,7 +4,7 @@ import java.util.HashMap;
 
 import ASM.asm_operand.Asm_Imm;
 import ASM.asm_operand.Asm_Operand;
-import backend.Allocater;
+import backend.AsmVisitor;
 
 public class Asm_BinaryOp extends Asm_Inst {
     public String Op;
@@ -34,7 +34,7 @@ public class Asm_BinaryOp extends Asm_Inst {
         Rs2=rs2;
     }
     @Override
-    public void accept(Allocater allocater) {
+    public void accept(AsmVisitor allocater) {
         allocater.visit(this);
     }
     @Override

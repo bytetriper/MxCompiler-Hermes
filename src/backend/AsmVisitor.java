@@ -4,7 +4,7 @@ import ASM.Asm_BasicBlock;
 import ASM.Asm_FuncBlock;
 import ASM.asm_inst.*;
 
-public interface Allocater {
+public interface AsmVisitor {
     public void visit(Asm_FuncBlock tmpnode);
 
     public void visit(Asm_BasicBlock tmpnode);

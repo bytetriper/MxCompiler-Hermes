@@ -2,14 +2,14 @@ package ASM.asm_inst;
 
 import ASM.asm_operand.Asm_Imm;
 import ASM.asm_operand.Asm_Operand;
-import backend.Allocater;
+import backend.AsmVisitor;
 public class Asm_Li extends Asm_Inst{
     public Asm_Li(Asm_Operand rd,Asm_Operand imm){
         Rd=rd;
         Imm=imm;
     }
     @Override
-    public void accept(Allocater allocater) {
+    public void accept(AsmVisitor allocater) {
         allocater.visit(this);
     }
     @Override

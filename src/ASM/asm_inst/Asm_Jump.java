@@ -4,7 +4,7 @@ import ASM.Asm_BasicBlock;
 import ASM.Asm_FuncBlock;
 import ASM.asm_operand.Asm_Operand;
 import ASM.asm_operand.Asm_PhysicalReg;
-import backend.Allocater;
+import backend.AsmVisitor;
 public class Asm_Jump extends Asm_Inst {
     String type;
     public Asm_Jump(Asm_Operand rd,Asm_Operand rs1,Asm_Operand rs2,String op){
@@ -20,7 +20,7 @@ public class Asm_Jump extends Asm_Inst {
         type=op;
     }
     @Override
-    public void accept(Allocater allocater) {
+    public void accept(AsmVisitor allocater) {
         allocater.visit(this);
     }
     @Override

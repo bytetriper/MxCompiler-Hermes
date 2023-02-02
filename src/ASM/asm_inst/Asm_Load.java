@@ -7,7 +7,7 @@ import ASM.asm_operand.Asm_PhysicalReg;
 import ASM.asm_operand.Asm_Relocation;
 import IR.ir_inst.Load;
 import IR.ir_value.Ir_GlobalReg;
-import backend.Allocater;
+import backend.AsmVisitor;
 public class Asm_Load extends Asm_Inst{
     public enum Load_Type{
         LB,LW
@@ -25,7 +25,7 @@ public class Asm_Load extends Asm_Inst{
         loadtype=type;
     }
     @Override
-    public void accept(Allocater allocater) {
+    public void accept(AsmVisitor allocater) {
         allocater.visit(this);
     }
     @Override

@@ -1,12 +1,18 @@
 package ASM.asm_inst;
-import backend.Allocater;
+import ASM.Asm_FuncBlock;
+import backend.AsmVisitor;
 public class Asm_Call extends Asm_Inst {
     String FuncName;
+    Asm_FuncBlock targetFunc;
     public Asm_Call(String Funcname){
         FuncName=Funcname;
     }
+    public Asm_Call(Asm_FuncBlock blk){
+        targetFunc=blk;
+        FuncName=blk.Name;
+    }
     @Override
-    public void accept(Allocater allocater) {
+    public void accept(AsmVisitor allocater) {
         allocater.visit(this);
     }
     @Override

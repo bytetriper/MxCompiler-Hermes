@@ -3,14 +3,14 @@ package ASM.asm_inst;
 import ASM.asm_operand.Asm_GlobalValue;
 import ASM.asm_operand.Asm_Operand;
 import ASM.asm_operand.Asm_PhysicalReg;
-import backend.Allocater;
+import backend.AsmVisitor;
 public class Asm_La extends Asm_Inst {
     public Asm_La(Asm_Operand rd,Asm_Operand rs1){
         Rd=rd;
         Rs1=rs1;
     }
     @Override
-    public void accept(Allocater allocater) {
+    public void accept(AsmVisitor allocater) {
         allocater.visit(this);
     }
     @Override

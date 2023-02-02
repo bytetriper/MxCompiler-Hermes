@@ -7,7 +7,7 @@ import java.util.jar.Attributes.Name;
 import ASM.asm_inst.Asm_Inst;
 import ASM.asm_operand.Asm_Operand;
 import utils.FUCKER;
-import backend.Allocater;
+import backend.AsmVisitor;
 public class Asm_BasicBlock extends Asm_Operand {
     public String Name;
     public LinkedList<Asm_Inst> Insts;
@@ -26,7 +26,7 @@ public class Asm_BasicBlock extends Asm_Operand {
     public void Add_Inst(Asm_Inst inst){
         Insts.add(inst);
     }
-    public void accept(Allocater allocater) {
+    public void accept(AsmVisitor allocater) {
         allocater.visit(this);
     }
     @Override
