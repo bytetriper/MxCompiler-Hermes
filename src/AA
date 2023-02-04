@@ -1,3 +1,3 @@
 #!/bin/bash
-java Compiler $1 >testspace/test.ll
+java Compiler $1 >testspace/test.ll p
 ravel output.s builtin.s

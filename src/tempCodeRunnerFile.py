@@ -1,1 +1,1 @@
-lf.visit(this);\n}")
+PhysicalReg {}=new Asm_PhysicalReg(RegName.{});".format(i,i))

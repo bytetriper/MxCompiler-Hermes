@@ -1,8 +1,6 @@
 package backend;
 
-import java.security.KeyStore.Entry;
 import java.util.ArrayList;
-import java.util.Base64;
 
 import IR.BasicBlock;
 import IR.FuncBlock;
@@ -10,7 +8,6 @@ import IR.IRBuilder;
 import IR.IRVisitor;
 import IR.ir_inst.*;
 import java.util.HashMap;
-import java.util.ListIterator;
 
 import ASM.Asm_BasicBlock;
 import ASM.Asm_FuncBlock;
@@ -24,7 +21,6 @@ import ASM.asm_inst.Asm_J;
 import ASM.asm_inst.Asm_Jump;
 import ASM.asm_inst.Asm_La;
 import ASM.asm_inst.Asm_Load;
-import ASM.asm_inst.Asm_Lui;
 import ASM.asm_inst.Asm_Mv;
 import ASM.asm_inst.Asm_Ret;
 import ASM.asm_inst.Asm_SexzOp;
@@ -35,13 +31,7 @@ import ASM.asm_operand.Asm_GlobalValue;
 import ASM.asm_operand.Asm_Imm;
 import ASM.asm_operand.Asm_OffsetReg;
 import ASM.asm_operand.Asm_Operand;
-import ASM.asm_operand.Asm_PhysicalReg;
-import ASM.asm_operand.Asm_Reg;
-import ASM.asm_operand.Asm_Relocation;
 import ASM.asm_operand.Asm_VirtualReg;
-import ASM.asm_operand.Asm_PhysicalReg.RegName;
-import ASM.asm_operand.Asm_Relocation.Functype;
-import IR.ir_type.Array_Type;
 import IR.ir_type.Ir_Type;
 import IR.ir_type.Pointer_Type;
 import IR.ir_type.Struct_Type;
@@ -53,7 +43,7 @@ import IR.ir_value.Ir_Reg;
 import IR.ir_value.Ir_Value;
 import IR.ir_value.Ir_VoidConst;
 import utils.FUCKER;
-
+import utils.PhysicalRegs;
 public class InstSelector implements IRVisitor {
     public HashMap<String, Ir_Type> Rename;
     public ArrayList<FuncBlock> Blocks;
@@ -61,40 +51,6 @@ public class InstSelector implements IRVisitor {
     public Asm_FuncBlock CurrentFunc;
     public ArrayList<Ir_Inst> Init_Declare;
     public ArrayList<Asm_Inst> Global_Declares;
-
-    public final Asm_PhysicalReg zero = new Asm_PhysicalReg(RegName.zero);
-    public final Asm_PhysicalReg ra = new Asm_PhysicalReg(RegName.ra);
-    public final Asm_PhysicalReg sp = new Asm_PhysicalReg(RegName.sp);
-    public final Asm_PhysicalReg gp = new Asm_PhysicalReg(RegName.gp);
-    public final Asm_PhysicalReg tp = new Asm_PhysicalReg(RegName.tp);
-    public final Asm_PhysicalReg t0 = new Asm_PhysicalReg(RegName.t0);
-    public final Asm_PhysicalReg t1 = new Asm_PhysicalReg(RegName.t1);
-    public final Asm_PhysicalReg t2 = new Asm_PhysicalReg(RegName.t2);
-    public final Asm_PhysicalReg t3 = new Asm_PhysicalReg(RegName.t3);
-    public final Asm_PhysicalReg t4 = new Asm_PhysicalReg(RegName.t4);
-    public final Asm_PhysicalReg t5 = new Asm_PhysicalReg(RegName.t5);
-    public final Asm_PhysicalReg t6 = new Asm_PhysicalReg(RegName.t6);
-    public final Asm_PhysicalReg s0 = new Asm_PhysicalReg(RegName.s0);
-    public final Asm_PhysicalReg s1 = new Asm_PhysicalReg(RegName.s1);
-    public final Asm_PhysicalReg s2 = new Asm_PhysicalReg(RegName.s2);
-    public final Asm_PhysicalReg s3 = new Asm_PhysicalReg(RegName.s3);
-    public final Asm_PhysicalReg s4 = new Asm_PhysicalReg(RegName.s4);
-    public final Asm_PhysicalReg s5 = new Asm_PhysicalReg(RegName.s5);
-    public final Asm_PhysicalReg s6 = new Asm_PhysicalReg(RegName.s6);
-    public final Asm_PhysicalReg s7 = new Asm_PhysicalReg(RegName.s7);
-    public final Asm_PhysicalReg s8 = new Asm_PhysicalReg(RegName.s8);
-    public final Asm_PhysicalReg s9 = new Asm_PhysicalReg(RegName.s9);
-    public final Asm_PhysicalReg s10 = new Asm_PhysicalReg(RegName.s10);
-    public final Asm_PhysicalReg s11 = new Asm_PhysicalReg(RegName.s11);
-    public final Asm_PhysicalReg a0 = new Asm_PhysicalReg(RegName.a0);
-    public final Asm_PhysicalReg a1 = new Asm_PhysicalReg(RegName.a1);
-    public final Asm_PhysicalReg a2 = new Asm_PhysicalReg(RegName.a2);
-    public final Asm_PhysicalReg a3 = new Asm_PhysicalReg(RegName.a3);
-    public final Asm_PhysicalReg a4 = new Asm_PhysicalReg(RegName.a4);
-    public final Asm_PhysicalReg a5 = new Asm_PhysicalReg(RegName.a5);
-    public final Asm_PhysicalReg a6 = new Asm_PhysicalReg(RegName.a6);
-    public final Asm_PhysicalReg a7 = new Asm_PhysicalReg(RegName.a7);
-
     public void DEBUG(String msg) {
         System.out.println(msg);
     }
@@ -129,48 +85,52 @@ public class InstSelector implements IRVisitor {
     public void Save_regs(FuncBlock funcblk){
         Asm_BasicBlock entry=(Asm_BasicBlock)funcblk.Entry.Asm_Reg;
         Asm_BasicBlock end=(Asm_BasicBlock)funcblk.Exit.Asm_Reg;
-        Asm_VirtualReg reg=new Asm_VirtualReg(4);
-        entry.Push_Inst(new Asm_Mv(reg,s0));
-        end.Push_Inst(new Asm_Mv(s0, reg));
+        for(var each:PhysicalRegs.CalleeSaved){
+            Asm_VirtualReg reg=new Asm_VirtualReg(4);
+            entry.Push_Inst(new Asm_Mv(reg,each.origin));
+            end.Push_Inst(new Asm_Mv(each.origin,reg));
+        }
     }
     public void Init() {
         for (var blk : Blocks) {
             ArrayList<Asm_Operand> para = new ArrayList<>();
             blk.Asm_Reg = new Asm_FuncBlock(blk.Name);
             blk.Entry.Asm_Reg = new Asm_BasicBlock(".Entry".formatted(blk.Name));
+            ((Asm_BasicBlock)blk.Entry.Asm_Reg).Add_Inst(new Asm_Mv(((Asm_FuncBlock)blk.Asm_Reg).ReturnAddress,PhysicalRegs.ra));
             int totalsize=0;
             for (int i = 0; i < blk.Parameter.size(); ++i) {
                 Ir_Value tmp = blk.Parameter.get(i);
                 if (i < 8) {
                     switch (i) {
                         case 0:
-                            tmp.Asm_Reg = a0;
+                            tmp.Asm_Reg = PhysicalRegs.a0;
                             break;
                         case 1:
-                            tmp.Asm_Reg = a1;
+                            tmp.Asm_Reg = PhysicalRegs.a1;
                             break;
                         case 2:
-                            tmp.Asm_Reg = a2;
+                            tmp.Asm_Reg =PhysicalRegs. a2;
                             break;
                         case 3:
-                            tmp.Asm_Reg = a3;
+                            tmp.Asm_Reg = PhysicalRegs.a3;
                             break;
                         case 4:
-                            tmp.Asm_Reg = a4;
+                            tmp.Asm_Reg = PhysicalRegs.a4;
                             break;
                         case 5:
-                            tmp.Asm_Reg = a5;
+                            tmp.Asm_Reg = PhysicalRegs.a5;
                             break;
                         case 6:
-                            tmp.Asm_Reg = a6;
+                            tmp.Asm_Reg = PhysicalRegs.a6;
                             break;
                         case 7:
-                            tmp.Asm_Reg = a7;
+                            tmp.Asm_Reg = PhysicalRegs.a7;
                             break;
                     }
                 } else {
-                    tmp.Asm_Reg = new Asm_OffsetReg(s0,totalsize , tmp.get_size());
+                    tmp.Asm_Reg = new Asm_OffsetReg(PhysicalRegs.sp,totalsize,tmp.get_size());
                     totalsize+=tmp.get_size();
+                    ((Asm_FuncBlock)blk.Asm_Reg).OverFlowedArgs.add((Asm_OffsetReg)tmp.Asm_Reg);
                 }
                 para.add(tmp.Asm_Reg);
             }
@@ -214,7 +174,6 @@ public class InstSelector implements IRVisitor {
     public void visit(FuncBlock tmpBlock) {
         CurrentFunc = (Asm_FuncBlock) tmpBlock.Asm_Reg;
         CurrentBlock = (Asm_BasicBlock) tmpBlock.Entry.Asm_Reg;
-        CurrentBlock.Add_Inst(new Asm_Mv(CurrentFunc.ReturnAddress,ra));//save ra in advanced
         CurrentFunc.Add_Block(CurrentBlock);
         visit(tmpBlock.Entry);
         for (var blk : tmpBlock.blks) {
@@ -337,10 +296,10 @@ public class InstSelector implements IRVisitor {
         if (tmpnode.Operands.size() > 0) {
             var tmp = tmpnode.Operands.get(0);
             if (!(tmp instanceof Ir_VoidConst)) {
-                CurrentBlock.Add_Inst(new Asm_Mv(a0, Get_Operand(tmp)));
+                CurrentBlock.Add_Inst(new Asm_Mv(PhysicalRegs.a0, Get_Operand(tmp)));
             }
         }
-        CurrentBlock.Add_Inst(new Asm_Mv(ra, CurrentFunc.ReturnAddress));
+        CurrentBlock.Add_Inst(new Asm_Mv(PhysicalRegs.ra, CurrentFunc.ReturnAddress));
         // all alloca is put inside the Entry Block,so Total_Offset here must be the
         // real offset
         CurrentBlock.Add_Inst(new Asm_Ret());
@@ -361,7 +320,7 @@ public class InstSelector implements IRVisitor {
 
     @Override
     public void visit(Alloca tmpnode) {// MODIFIED
-        tmpnode.User.Asm_Reg = new Asm_OffsetReg(sp, (CurrentFunc.Total_Offset+CurrentFunc.Arg_Size), tmpnode.User.get_size());
+        tmpnode.User.Asm_Reg = new Asm_OffsetReg(PhysicalRegs.sp, (CurrentFunc.Total_Offset+CurrentFunc.Arg_Size), tmpnode.User.get_size());
         CurrentFunc.Total_Offset += tmpnode.User.get_size();
     }
 
@@ -452,47 +411,56 @@ public class InstSelector implements IRVisitor {
 
     @Override
     public void visit(Call tmpnode) {// MODIFIED
+        HashMap<Asm_Operand,Asm_Operand> tmpMap=new HashMap<>();
+        for(var each:PhysicalRegs.CallerSaved){
+            Asm_VirtualReg reg=new Asm_VirtualReg(4);
+            tmpMap.put(each.origin,reg);
+            CurrentBlock.Add_Inst(new Asm_Mv(reg,each.origin));
+        }
         int totalsize = 0;
         for (int i = 0; i < tmpnode.Operands.size(); ++i) {
             var para = Get_Operand(tmpnode.Operands.get(i));
             if (i < 8) {
                 switch (i) {
                     case 0:
-                        CurrentBlock.Add_Inst(new Asm_Mv(a0, para));
+                        CurrentBlock.Add_Inst(new Asm_Mv(PhysicalRegs.a0, para));
                         break;
                     case 1:
-                        CurrentBlock.Add_Inst(new Asm_Mv(a1, para));
+                        CurrentBlock.Add_Inst(new Asm_Mv(PhysicalRegs.a1, para));
                         break;
                     case 2:
-                        CurrentBlock.Add_Inst(new Asm_Mv(a2, para));
+                        CurrentBlock.Add_Inst(new Asm_Mv(PhysicalRegs.a2, para));
                         break;
                     case 3:
-                        CurrentBlock.Add_Inst(new Asm_Mv(a3, para));
+                        CurrentBlock.Add_Inst(new Asm_Mv(PhysicalRegs.a3, para));
                         break;
                     case 4:
-                        CurrentBlock.Add_Inst(new Asm_Mv(a4, para));
+                        CurrentBlock.Add_Inst(new Asm_Mv(PhysicalRegs.a4, para));
                         break;
                     case 5:
-                        CurrentBlock.Add_Inst(new Asm_Mv(a5, para));
+                        CurrentBlock.Add_Inst(new Asm_Mv(PhysicalRegs.a5, para));
                         break;
                     case 6:
-                        CurrentBlock.Add_Inst(new Asm_Mv(a6, para));
+                        CurrentBlock.Add_Inst(new Asm_Mv(PhysicalRegs.a6, para));
                         break;
                     case 7:
-                        CurrentBlock.Add_Inst(new Asm_Mv(a7, para));
+                        CurrentBlock.Add_Inst(new Asm_Mv(PhysicalRegs.a7, para));
                         break;
                 }
             } else {
-                CurrentBlock.Add_Inst(new Asm_Mv(new Asm_OffsetReg(sp, totalsize, para.size), para));
+                CurrentBlock.Add_Inst(new Asm_Mv(new Asm_OffsetReg(PhysicalRegs.sp, totalsize, para.size), para));
                 totalsize += para.size;
             }
 
         }
-        CurrentBlock.Add_Inst(new Asm_Mv(CurrentFunc.ReturnAddress,ra));
-        CurrentBlock.Add_Inst(new Asm_Call(tmpnode.Func.Name));
-        CurrentBlock.Add_Inst(new Asm_Mv(ra,CurrentFunc.ReturnAddress));
+        //CurrentBlock.Add_Inst(new Asm_Mv(CurrentFunc.ReturnAddress,PhysicalRegs.ra));
+        CurrentBlock.Add_Inst(new Asm_Call(tmpnode.Func.Name,Math.min(tmpnode.Operands.size(),8)));
+        //CurrentBlock.Add_Inst(new Asm_Mv(PhysicalRegs.ra,CurrentFunc.ReturnAddress));
         if (tmpnode.User != null)
-            CurrentBlock.Add_Inst(new Asm_Mv(Get_Operand(tmpnode.User), a0));
+            CurrentBlock.Add_Inst(new Asm_Mv(Get_Operand(tmpnode.User), PhysicalRegs.a0));
+        for(var each:tmpMap.keySet()){
+            CurrentBlock.Add_Inst(new Asm_Mv(each,tmpMap.get(each)));
+        }
     }
 
     @Override

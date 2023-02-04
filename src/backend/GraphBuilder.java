@@ -27,33 +27,44 @@ public class GraphBuilder implements AsmPass {// build CFG and Inteference Graph
         // fart here
     }
 
-    public void visit(InstSelector selector) {
-        for (var blk : selector.Blocks) {
-            visit((Asm_FuncBlock) blk.Asm_Reg);
-        }
+    public void DEBUG(String msg) {
+        System.out.println(msg);
     }
 
     @Override
     public void visit(Asm_BasicBlock blk) {
         CurrentBlock = blk;
+        // DEBUG("\n\nblk:" + blk.Name);
         ListIterator<Asm_Inst> it = blk.Insts.listIterator();
-        if (blk.Insts.size() != 1) {
-            it.next();
-            while (it.hasNext()) {
-                var tmp = it.next();
-                var now = it.previous();
-                CurrentFunc.CFG.add_edge(now.Node, tmp.Node);
-                if (now instanceof Asm_Jump) {
-                    CurrentFunc.CFG.add_edge(now.Node, ((Asm_BasicBlock) now.Rd).Insts.get(0).Node);
-                }
+        boolean fg = true;
+        while (fg) {
+            var tmp = it.next();
+            if (it.hasNext())
                 it.next();
-            }
+            else
+                fg = false;
+            // DEBUG(tmp.To_String());
+            var now = it.previous();
+
+            if (tmp instanceof Asm_Jump || tmp instanceof Asm_J) {
+                CurrentFunc.CFG.add_edge(((Asm_BasicBlock) tmp.Rd).Insts.get(0).Node, tmp.Node);
+                CurrentFunc.CFG.add_edge(now.Node, tmp.Node);
+                // DEBUG(((Asm_BasicBlock)
+                // tmp.Rd).Insts.get(0).To_String()+"->"+tmp.To_String());
+            } else if (tmp instanceof Asm_Ret) {
+
+            } else
+                // DEBUG(now.To_String() + "->" + tmp.To_String());
+                CurrentFunc.CFG.add_edge(now.Node, tmp.Node);
+
         }
-        var endinst = blk.Insts.get(blk.Insts.size() - 1);
-        if (endinst instanceof Asm_Ret) {
-        } else {//
-            CurrentFunc.CFG.add_edge(((Asm_BasicBlock) endinst.Rd).Insts.get(0).Node, endinst.Node);
-        }
+
+        // var endinst = blk.Insts.get(blk.Insts.size() - 1);
+        // if (endinst instanceof Asm_Ret) {
+        // } else {//
+        // CurrentFunc.CFG.add_edge(((Asm_BasicBlock) endinst.Rd).Insts.get(0).Node,
+        // endinst.Node);
+        // }
     }
 
     @Override
@@ -64,29 +75,42 @@ public class GraphBuilder implements AsmPass {// build CFG and Inteference Graph
         }
         // CFG already build
         // Deal with Out now
-
+        //DEBUG("\n\n\nFUNCBLOCK:" + CurrentFunc.Name);
         for (var variable : CurrentFunc.InteferenceGraph.Variables) {
+            // DEBUG_Node_Info(variable);
             BFS(variable);
         }
         // Out Done
         // Deal with Inteference Graph Now
-        /*Asm_PhysicalReg sp=new Asm_PhysicalReg(RegName.sp);
-        Asm_PhysicalReg t0=new Asm_PhysicalReg(RegName.t0);
-        Asm_PhysicalReg t1=new Asm_PhysicalReg(RegName.t1);*/
         for (var basicblk : blk.Blks) {
             for (var inst : basicblk.Insts) {
                 for (var u : inst.Node.Def) {
-                    for (var v : inst.Node.Use) {
-                        CurrentFunc.InteferenceGraph.add_doubleEdge(u, v);
-                        if(inst instanceof Asm_Mv)
-                            CurrentFunc.InteferenceGraph.add_mv(v, u);
+                    for (var v : inst.Node.Out) {
+                        if (inst instanceof Asm_Mv) {//for a<- c
+                            if (inst.Node.Use.size()>0&&v != inst.Node.Use.iterator().next())//v!=c
+                                CurrentFunc.InteferenceGraph.add_doubleEdge(u, v);
+
+                        } else
+                            CurrentFunc.InteferenceGraph.add_doubleEdge(u, v);
                     }
-                    //CurrentFunc.InteferenceGraph.add_doubleEdge(u,sp);
+                    if (inst instanceof Asm_Mv){
+                        for(var v:inst.Node.Use){
+                            CurrentFunc.InteferenceGraph.add_mv(u, v);
+                        }
+                    }
                 }
+                //DEBUG_Inst_Info(inst.Node);
             }
         }
-        //TODO SP for sp,t0,t1... 
-        // Inteference Graph Done
+        /*
+        for(var vari:CurrentFunc.InteferenceGraph.Variables){
+            DEBUG("Start:"+vari.origin.To_String());
+            for(var each:vari.Neighbors){
+                System.out.print(each.origin.To_String()+" ");
+            }
+            DEBUG("\n\n");
+        }*/
+        // Inteference Graph Done 
     }
 
     public void BFS(GraphNode<Asm_Operand> node) {
@@ -97,25 +121,48 @@ public class GraphBuilder implements AsmPass {// build CFG and Inteference Graph
             visit.add(each);
             each.Use.add(node);
         }
+        // DEBUG("\nstart:"+node.origin.To_String());
         while (queue.size() != 0) {
             var top = queue.pop();
+            // DEBUG_Inst_Info(top);
             for (var v : top.Neighbors) {
                 if (v.Def.contains(node)) {
-
                 } else {
                     if (!visit.contains(v)) {
                         queue.add(v);
                         visit.add(v);
                     }
-                    v.Use.add(node);
+                    v.Out.add(node);
                 }
             }
         }
     }
 
+    public void DEBUG_Node_Info(GraphNode<Asm_Operand> node) {
+        System.out.println("\n" + node.origin.To_String() + "\nUseList:");
+        for (var each : node.UseList) {
+            System.out.println(each.origin.To_String());
+        }
+    }
+
+    public void DEBUG_Inst_Info(GraphNode<Asm_Inst> node) {
+        System.out.println("\nInst:" + node.origin.To_String() + "\nNeighbors:");
+        for (var each : node.Neighbors) {
+            System.out.println(each.origin.To_String());
+        }
+    }
+
     public void DEBUG_Info(GraphNode<Asm_Inst> node) {
-        System.out.println(node.origin.To_String() + "\nUse:");
+        System.out.println("\n" + node.origin.To_String() + "\nUse:");
         for (var each : node.Use) {
+            System.out.println(each.origin.To_String());
+        }
+        System.out.println("\nDef:");
+        for (var each : node.Def) {
+            System.out.println(each.origin.To_String());
+        }
+        System.out.println("\nOut:");
+        for (var each : node.Out) {
             System.out.println(each.origin.To_String());
         }
     }

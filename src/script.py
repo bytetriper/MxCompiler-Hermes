@@ -5,4 +5,4 @@ a=["zero" ,
         "a0" , "a1" , "a2" , "a3" , "a4" , "a5" , "a6" , "a7"]
 
 for i in a:
-    print("public final Asm_PhysicalReg {}=new Asm_PhysicalReg(RegName.{});".format(i,i))
+    print("add({}.Node);".format(i))

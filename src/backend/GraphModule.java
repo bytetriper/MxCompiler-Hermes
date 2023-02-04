@@ -4,11 +4,9 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import utils.Edge;
 public class GraphModule<T> {
-    public LinkedHashSet<Edge<GraphNode<T>>> Edges;
     public LinkedHashSet<GraphNode<T>> Variables;
     public LinkedHashSet<Edge<GraphNode<T>>> Mvs;
     public GraphModule(){
-        Edges=new LinkedHashSet<>();
         Variables=new LinkedHashSet<>();
         Mvs=new LinkedHashSet<>();
     }
@@ -19,16 +17,16 @@ public class GraphModule<T> {
         Variables.addAll(regs);
     }
     public void add_edge(GraphNode<T> from,GraphNode<T> to){
-        Edges.add(new Edge<GraphNode<T>>(from, to));//will conflict?
+        if(from==to)return;//does not allow self-cycle to exist
         from.Add_Adj(to);
     } 
     public void add_doubleEdge(GraphNode<T> from,GraphNode<T> to){
-        Edges.add(new Edge<GraphNode<T>>(from, to));//will conflict?
-        Edges.add(new Edge<GraphNode<T>>(to, from));
+        if(from==to)return;
         from.Add_Adj(to);
         to.Add_Adj(from);
     }
     public void add_mv(GraphNode<T> from,GraphNode<T> to){
+        if(from==to)return;
         Mvs.add(new Edge<GraphNode<T>>(from, to));
         Mvs.add(new Edge<GraphNode<T>>(to,from));
     }

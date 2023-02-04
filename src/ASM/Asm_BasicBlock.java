@@ -29,6 +29,12 @@ public class Asm_BasicBlock extends Asm_Operand {
     public void accept(AsmVisitor allocater) {
         allocater.visit(this);
     }
+    public void Add_Inst_BeforeLast(Asm_Inst inst){
+        Insts.add(Insts.size()-1,inst);
+    }
+    public void Add_Inst_AfterFirst(Asm_Inst inst){//assert inst.size>=1
+        Insts.add(1,inst);
+    }
     @Override
     public String To_String(){
         String str="\n";

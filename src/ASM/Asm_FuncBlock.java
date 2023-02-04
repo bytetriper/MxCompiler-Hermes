@@ -29,11 +29,13 @@ public class Asm_FuncBlock extends Asm_Operand {
     public int Total_Offset=0;
     public GraphModule<Asm_Inst> CFG;
     public GraphModule<Asm_Operand> InteferenceGraph;
+    public ArrayList<Asm_OffsetReg> OverFlowedArgs;
     public Asm_FuncBlock(String name){
         Name=name;
         Blks=new ArrayList<>();
         CFG=new GraphModule<>();
         InteferenceGraph=new GraphModule<>();
+        OverFlowedArgs=new ArrayList<>();
         ReturnAddress=new Asm_VirtualReg(4);
     }
     public void Add_Block(Asm_BasicBlock blk){

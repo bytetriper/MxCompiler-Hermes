@@ -1,0 +1,2 @@
+la VT687 .ConstantString.0
+.ConstantString.0

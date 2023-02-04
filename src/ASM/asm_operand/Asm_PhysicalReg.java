@@ -3,6 +3,8 @@ package ASM.asm_operand;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import backend.GraphNode;
+
 public class Asm_PhysicalReg extends Asm_Reg {
     RegName Name;
     public enum RegName{
@@ -50,6 +52,7 @@ public class Asm_PhysicalReg extends Asm_Reg {
     public Asm_PhysicalReg(RegName name){
         Name=name;
         color=this;//pre-colored
+        Node=new GraphNode<>(this);
     }
     @Override
     public boolean equals(Object obj) {

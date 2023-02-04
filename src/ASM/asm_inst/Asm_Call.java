@@ -2,14 +2,11 @@ package ASM.asm_inst;
 import ASM.Asm_FuncBlock;
 import backend.AsmVisitor;
 public class Asm_Call extends Asm_Inst {
-    String FuncName;
-    Asm_FuncBlock targetFunc;
-    public Asm_Call(String Funcname){
+    public String FuncName;
+    public int ParaSize;
+    public Asm_Call(String Funcname,int parasize){
         FuncName=Funcname;
-    }
-    public Asm_Call(Asm_FuncBlock blk){
-        targetFunc=blk;
-        FuncName=blk.Name;
+        ParaSize=parasize;
     }
     @Override
     public void accept(AsmVisitor allocater) {

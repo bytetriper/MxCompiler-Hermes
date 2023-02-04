@@ -22,10 +22,7 @@ public class Asm_VirtualReg extends Asm_Reg {
         //new FUCKER("Try To To_String a Virtual Reg");
         if(Offset==-1)
         {    
-            if(color==null)
-                return "VT%d".formatted(Id);
-            else
-                return color.To_String();
+            return "VT%d".formatted(Id);
         }
         else
             return "%d(sp)".formatted(Offset);

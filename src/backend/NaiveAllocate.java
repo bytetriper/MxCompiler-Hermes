@@ -69,7 +69,8 @@ public class NaiveAllocate implements AsmVisitor {
     public void CloseUp(FuncBlock blk){
         var funcblk=(Asm_FuncBlock)blk.Asm_Reg;
         var entry=(Asm_BasicBlock)blk.Entry.Asm_Reg;
-        
+        for(var each:funcblk.OverFlowedArgs)
+            each.offset+=funcblk.Total_Offset+funcblk.Arg_Size;
         entry.Push_Inst(new Asm_BinaryOp(sp,sp,new Asm_Imm(-(funcblk.Total_Offset+funcblk.Arg_Size)),"addi"));
         entry.Push_Inst(new Asm_Mv(s0,sp));
         var exit=(Asm_BasicBlock)blk.Exit.Asm_Reg;

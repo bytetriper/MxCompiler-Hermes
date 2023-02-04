@@ -9,8 +9,12 @@ import astnode.basicnode.*;
 import astnode.defnode.*;
 import astnode.exprnode.*;
 import astnode.stmtsnode.*;
+import backend.ColorAllocate;
+import backend.GraphBuilder;
+import backend.GraphColorer;
 import backend.InstSelector;
 import backend.NaiveAllocate;
+import backend.NodesCollector;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -451,7 +455,7 @@ public class Compiler {
         s = new Scanner(input).useDelimiter("\\A");
         result = s.hasNext() ? s.next() : "";
         //System.out.println(result);
-        //if(args.length>1)    
+        if(args.length>1)    
             result=prefix+result;
         //MxLexer lexer=new MxLexer(CharStreams.fromStream((input)));
         MxLexer lexer=new MxLexer(CharStreams.fromString(result));
@@ -470,15 +474,22 @@ public class Compiler {
         SemanticChecker SCK=new SemanticChecker(node);
         node.accept(SCK);
         
-         
+        System.out.println("Semantic Checked");
         IRBuilder IBD=new IRBuilder(node);
         node.accept(IBD);
+        System.out.println("IR build");
         //System.out.print(Format_Prefix+IBD.To_String());
         InstSelector IS=new InstSelector();
         IS.visit(IBD);
-        NaiveAllocate NA=new NaiveAllocate();
-        NA.visit(IS);
-        
+        FileOutputStream outputDEBUG=new FileOutputStream("debug.s");
+        outputDEBUG.write(IS.To_String().getBytes());
+        outputDEBUG.close();
+        //NaiveAllocate NA=new NaiveAllocate();
+        //NA.visit(IS);
+        GraphColorer GC=new GraphColorer();
+        GC.visit(IS);
+        ColorAllocate CA=new ColorAllocate();
+        CA.visit(IS);
         FileOutputStream outputASM=new FileOutputStream("output.s");
         outputASM.write(IS.To_String().getBytes());
         outputASM.close();
